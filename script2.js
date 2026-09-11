@@ -238,11 +238,11 @@
             getDataCoreContainer();
 
         if (heading) {
-            heading.hidden = true;
+            heading.hidden = false;
         }
 
         if (container) {
-            container.hidden = true;
+            container.hidden = false;
         }
     }
 

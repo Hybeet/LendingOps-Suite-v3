@@ -741,6 +741,210 @@ footer button a {
     display: none !important;
 }
 
+/* =========================================================================
+   KNOWLEDGE HUB — EXPANDED TRAINING CARDS
+   ========================================================================= */
+
+.knowledge-card-guide,
+.knowledge-card-warning,
+.knowledge-card-disbursement,
+.knowledge-card-important,
+.knowledge-card-datacore,
+.knowledge-card-checklist,
+.knowledge-card-flow {
+    position: relative;
+    overflow: hidden;
+}
+
+
+.knowledge-card-guide::before,
+.knowledge-card-warning::before,
+.knowledge-card-disbursement::before,
+.knowledge-card-important::before,
+.knowledge-card-datacore::before,
+.knowledge-card-checklist::before,
+.knowledge-card-flow::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+}
+
+
+.knowledge-card-guide::before {
+    background: #3b82f6;
+}
+
+
+.knowledge-card-warning::before {
+    background: #f59e0b;
+}
+
+
+.knowledge-card-disbursement::before {
+    background: #8b5cf6;
+}
+
+
+.knowledge-card-important::before {
+    background: #ef4444;
+}
+
+
+.knowledge-card-datacore::before {
+    background: #06b6d4;
+}
+
+
+.knowledge-card-checklist::before {
+    background: #10b981;
+}
+
+
+.knowledge-card-flow::before {
+    background: #6366f1;
+}
+
+
+/* -------------------------------------------------------------------------
+   LEARNING STEPS
+   ------------------------------------------------------------------------- */
+
+.knowledge-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+
+.knowledge-step p,
+.troubleshooting-step p,
+.flow-step p {
+    margin: 4px 0 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+
+.step-number,
+.flow-number {
+    min-width: 28px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+
+
+/* -------------------------------------------------------------------------
+   TROUBLESHOOTING
+   ------------------------------------------------------------------------- */
+
+.troubleshooting-step {
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+
+.error-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+}
+
+
+.error-row strong {
+    font-size: 0.8rem;
+}
+
+
+.error-row span {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: #64748b;
+}
+
+
+/* -------------------------------------------------------------------------
+   TIPS
+   ------------------------------------------------------------------------- */
+
+.knowledge-tip {
+    padding: 11px 13px;
+    border-radius: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+
+/* -------------------------------------------------------------------------
+   CHECKLIST
+   ------------------------------------------------------------------------- */
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+
+.checklist-item span {
+    font-size: 1rem;
+}
+
+
+.checklist-item p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #475569;
+}
+
+
+/* -------------------------------------------------------------------------
+   SYSTEM FLOW
+   ------------------------------------------------------------------------- */
+
+.flow-step {
+    padding: 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+
+.flow-step strong {
+    font-size: 0.82rem;
+}
+
+
+.flow-step p {
+    margin-left: 40px;
+}
+
 
 /* =========================================================================
    DATACORE ACTIVITY BADGE COLORS

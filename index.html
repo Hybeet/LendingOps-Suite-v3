@@ -47,8 +47,10 @@
                 <div class="hub-icon-box">📚</div>
                 <div>
                     <h3 class="text-xl font-bold text-slate-800" style="margin: 0;">Operations Knowledge Hub</h3>
-                    <p class="text-xs text-slate-500" style="margin: 2px 0 0 0;">Click any card matrix below to expand definitions, 
-                        calculations and operational balancing examples.</p>
+                    <p class="text-xs text-slate-500" style="margin: 2px 0 0 0;">
+                        Learn the calculations, understand the workflow, identify common
+                        errors and know how to correct them before entering the workspace.
+                    </p>
                 </div>
             </div>
 
@@ -162,6 +164,930 @@
                     </div>
                 </div>
 
+                <!-- =========================================================
+                    KNOWLEDGE HUB — REPORT PREPARATION
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-guide"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            📝 How to Prepare a Good Daily Report
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        A clean report gives the system the right information to extract,
+                        calculate and validate your daily operations correctly.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="knowledge-step">
+                            <span class="step-number">1</span>
+                            <div>
+                                <strong>Use clear headings.</strong>
+                                <p>
+                                    Label sections such as Collection, Disbursement,
+                                    Pay Down, Recovery and other major sections clearly.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="knowledge-step">
+                            <span class="step-number">2</span>
+                            <div>
+                                <strong>Keep customer information together.</strong>
+                                <p>
+                                    Put the customer's name, amount and other customer
+                                    information under the correct customer.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="knowledge-step">
+                            <span class="step-number">3</span>
+                            <div>
+                                <strong>Separate the customer from the guarantor.</strong>
+                                <p>
+                                    A guarantor is not the borrower. Make sure the report
+                                    clearly identifies the guarantor.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Simple rule:</strong>
+                            The clearer the report is written, the easier it is for
+                            LendingOps to understand it.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    COMMON REPORT ERRORS
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-warning"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            ⚠️ Common Report Errors
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Small formatting mistakes can make the system miss a value or
+                        misunderstand what the value means.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="error-row">
+                            <strong>❌ Missing customer name</strong>
+                            <span>
+                                The system may not know who the transaction belongs to.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>❌ Missing amount</strong>
+                            <span>
+                                The system may find the customer but cannot determine
+                                the disbursement amount.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>❌ Poor or unclear heading</strong>
+                            <span>
+                                The system may not know where the Disbursement section starts.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>❌ Guarantor written like a customer</strong>
+                            <span>
+                                The system may accidentally treat the guarantor as another
+                                customer if the report structure is unclear.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>❌ Blank template filled incorrectly</strong>
+                            <span>
+                                Empty customer templates should not be mistaken for
+                                real transactions.
+                            </span>
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Correction:</strong>
+                            Do not immediately assume the system is broken.
+                            First check whether the information in the report is clearly
+                            labelled.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    DISBURSEMENT PREPARATION
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-disbursement"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            📥 How to Write Disbursement Correctly
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        The Disbursement section is where the system gets new loan records.
+                        Good structure makes the records easier to detect.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="formula-block">
+                            <span class="highlight-blue">Recommended structure:</span><br><br>
+
+                            Customer Name<br>
+                            Customer Type<br>
+                            Amount / Next Loan Amount<br>
+                            Phone Number<br>
+                            Other customer information<br>
+                            Guarantor information
+                        </div>
+
+                        <div class="business-example-box">
+
+                            <strong>Example:</strong>
+
+                            <p>
+                                Name: Example Customer (RT)
+                            </p>
+
+                            <p>
+                                Next loan amount: ₦90,000
+                            </p>
+
+                            <p>
+                                Phone no: 08000000000
+                            </p>
+
+                            <p>
+                                Guarantor<br>
+                                Name: Example Guarantor
+                            </p>
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 The system does not need every piece of information to
+                            calculate the principal, but clear labels make extraction
+                            much safer.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    DISBURSEMENT NOT DETECTED
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-warning"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🔍 Why Disbursement Was Not Detected
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        If the Disbursement Core says no records were found, check these
+                        things before reporting a system problem.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="troubleshooting-step">
+                            <strong>1. Check the heading.</strong>
+                            <p>
+                                Make sure the report contains a clear Disbursement heading.
+                            </p>
+                        </div>
+
+                        <div class="troubleshooting-step">
+                            <strong>2. Check the customer name.</strong>
+                            <p>
+                                The customer's name should be clearly labelled or clearly
+                                identifiable.
+                            </p>
+                        </div>
+
+                        <div class="troubleshooting-step">
+                            <strong>3. Check the amount.</strong>
+                            <p>
+                                Use a clear amount such as Amount, Next loan amount,
+                                or another supported amount format.
+                            </p>
+                        </div>
+
+                        <div class="troubleshooting-step">
+                            <strong>4. Check where the section ends.</strong>
+                            <p>
+                                Make sure the Disbursement section is not mixed into the
+                                next major section such as Pay Down.
+                            </p>
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Quick fix:</strong>
+                            Correct the report text, then use the Disbursement
+                            <strong>↻ Refresh</strong> button.
+                            You do not need to restart the entire workflow just because
+                            the Disbursement text was corrected.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    CUSTOMER VS GUARANTOR
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-important"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            👤 Customer vs Guarantor
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        A guarantor supports the customer's loan. A guarantor is not a
+                        disbursement customer.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="business-example-box">
+
+                            <p>
+                                <strong>Customer:</strong>
+                                The person receiving the loan.
+                            </p>
+
+                            <p>
+                                <strong>Guarantor:</strong>
+                                The person standing as guarantor for that customer.
+                            </p>
+
+                        </div>
+
+                        <div class="formula-block">
+
+                            <span class="highlight-red">Wrong structure:</span><br>
+
+                            Name: Customer<br>
+                            Phone: 080...<br>
+                            Name: Guarantor<br>
+                            Phone: 081...
+
+                            <br><br>
+
+                            <span class="highlight-blue">Better structure:</span><br>
+
+                            Customer Name: Customer<br>
+                            Phone: 080...<br>
+                            Guarantor Name: Guarantor<br>
+                            Phone: 081...
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 Always make the word <strong>Guarantor</strong> clear.
+                            This prevents the guarantor from being mistaken for another
+                            customer.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    DISBURSEMENT AMOUNT RULES
+                    ========================================================= -->
+
+                <div class="knowledge-card"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            💰 Disbursement Amount & Deal Rules
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Learn how the system determines the principal when the report
+                        contains an amount, number of deals, or both.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="formula-block">
+
+                            <span class="highlight-blue">Main rule:</span><br><br>
+
+                            1 Deal = ₦30,000<br><br>
+
+                            3 Deals = ₦90,000<br>
+                            4 Deals = ₦120,000<br>
+                            5 Deals = ₦150,000
+
+                        </div>
+
+                        <div class="business-example-box">
+
+                            <strong>Amount priority:</strong>
+
+                            <p>
+                                When a clear Next Loan Amount is available, it is used
+                                instead of an old/previous loan amount.
+                            </p>
+
+                            <p>
+                                If the report gives New Deals without an amount,
+                                the system can calculate the principal using the
+                                ₦30,000-per-deal rule.
+                            </p>
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 Do not use a phone number as an amount.
+                            Phone numbers and financial amounts are different fields.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    RETURNING VS NEW
+                    ========================================================= -->
+
+                <div class="knowledge-card"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🆕 Returning Customer vs New Customer
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Customer type affects how the system matches the customer and
+                        how the new loan record is prepared.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="business-example-box">
+
+                            <p>
+                                <strong>(RT)</strong> = Returning Customer
+                            </p>
+
+                            <p>
+                                <strong>(NW)</strong> = New Customer
+                            </p>
+
+                            <p>
+                                If no NW marker is present, the system treats the
+                                customer as Returning Customer under the current rules.
+                            </p>
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 If the customer is genuinely new, make sure the report
+                            clearly identifies the customer as <strong>NW</strong>.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    DATACORE MATCHING
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-datacore"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🧠 How DataCore Matches Customers
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        DataCore is the registry used to check existing customer information
+                        before processing transactions.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="knowledge-step">
+                            <span class="step-number">1</span>
+                            <div>
+                                <strong>Report gives the customer name.</strong>
+                                <p>
+                                    The system reads the customer from the report.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="knowledge-step">
+                            <span class="step-number">2</span>
+                            <div>
+                                <strong>DataCore checks the market.</strong>
+                                <p>
+                                    The customer is checked against the selected market's
+                                    registry.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="knowledge-step">
+                            <span class="step-number">3</span>
+                            <div>
+                                <strong>Existing information is brought into the preview.</strong>
+                                <p>
+                                    Information such as customer identity, branch and
+                                    officer information can be used during enrichment.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Important:</strong>
+                            DataCore matching does not mean that every value shown in the
+                            preview must replace what the officer reviewed and edited.
+                            Editable fields remain editable.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    DATACORE REFRESH
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-datacore"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🔄 When to Use DataCore Refresh
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Refresh allows the current report and current market information
+                        to be read again without restarting the entire extraction process.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="business-example-box">
+
+                            <strong>Use Refresh when:</strong>
+
+                            <p>• You corrected a customer name.</p>
+
+                            <p>• You corrected the market.</p>
+
+                            <p>• You corrected the report date.</p>
+
+                            <p>• DataCore customer information was not loaded correctly.</p>
+
+                            <p>• You want to reload the current DataCore state.</p>
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 Refresh is different from Extract Data.
+                            Refresh is intended to reload DataCore information without
+                            unnecessarily restarting the complete report extraction workflow.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    DATACORE ERRORS
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-warning"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🚨 DataCore Errors & What They Mean
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Most DataCore problems can be understood by checking the market,
+                        customer identity, date and connection status.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="error-row">
+                            <strong>Customer not found</strong>
+                            <span>
+                                Check the spelling of the customer name and make sure the
+                                correct market was selected.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>Market missing</strong>
+                            <span>
+                                Confirm that the report contains a valid market and that
+                                the market was extracted correctly.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>Report date missing</strong>
+                            <span>
+                                Check that the report contains a clear valid date.
+                            </span>
+                        </div>
+
+                        <div class="error-row">
+                            <strong>DataCore not loaded</strong>
+                            <span>
+                                Use the DataCore Refresh button and check the status message.
+                            </span>
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Rule:</strong>
+                            Read the error message first. Correct the source information
+                            before repeatedly clicking buttons.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    BORROWER / LOAN IDs
+                    ========================================================= -->
+
+                <div class="knowledge-card"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🆔 Borrower ID & Loan ID
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        These IDs help the system identify the borrower and the specific
+                        loan record.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="business-example-box">
+
+                            <p>
+                                <strong>Borrower Unique Number:</strong>
+                                Identifies the borrower/customer.
+                            </p>
+
+                            <p>
+                                <strong>Loan Unique Number:</strong>
+                                Identifies the particular loan record.
+                            </p>
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 If an editable ID is changed during review, the reviewed
+                            value should be preserved when the record is posted.
+                        </div>
+
+                        <div class="formula-block">
+                            <span class="highlight-blue">Example:</span><br>
+                            Market Prefix / Sequence<br><br>
+                            IJK/1909<br>
+                            IJK/1910<br>
+                            IJK/1911
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    EDITABLE FIELDS
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-important"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            ✏️ What Officers Can Edit
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Some preview fields are intentionally editable because officers
+                        may need to correct operational information before posting.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="business-example-box">
+
+                            <strong>Editable:</strong>
+
+                            <p>✏️ Customer Name</p>
+                            <p>✏️ Borrower Unique Number</p>
+                            <p>✏️ Loan Unique Number</p>
+                            <p>✏️ Form</p>
+                            <p>✏️ Card</p>
+
+                        </div>
+
+                        <div class="business-example-box">
+
+                            <strong>System-controlled:</strong>
+
+                            <p>🔒 Customer Type</p>
+                            <p>🔒 New Deals</p>
+                            <p>🔒 Principal</p>
+                            <p>🔒 Daily Repayment</p>
+                            <p>🔒 Branch ID</p>
+                            <p>🔒 Market Officer</p>
+                            <p>🔒 Disbursement Date</p>
+                            <p>🔒 Total Paid</p>
+
+                        </div>
+
+                        <div class="knowledge-tip">
+                            💡 Review the editable fields carefully before posting.
+                            What you enter there is intended to become the operational
+                            value for that new record.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    CORRECTING WITHOUT RESTARTING
+                    ========================================================= -->
+
+                <div class="knowledge-card"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🔁 Correcting a Report Without Starting Again
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Not every correction requires a complete re-extraction.
+                        Use the appropriate Refresh function.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="formula-block">
+
+                            <span class="highlight-blue">If you corrected:</span><br><br>
+
+                            Report text → use the relevant section Refresh<br>
+                            Disbursement text → Disbursement Refresh<br>
+                            DataCore customer state → DataCore Refresh
+
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Remember:</strong>
+                            Extract Data is the main extraction action.
+                            Refresh buttons are targeted tools for re-reading the relevant
+                            part of the workflow.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    PRE-EXTRACTION CHECKLIST
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-checklist"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🧪 Before You Click "Extract Data"
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        A quick checklist that prevents many avoidable extraction problems.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Is the market clearly stated?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Is the report date clearly stated?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Are the financial headings clear?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Is the Disbursement section clearly labelled?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Are customer names clearly identifiable?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Are amounts clearly identifiable?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Are guarantors clearly marked as guarantors?</p>
+                        </div>
+
+                        <div class="checklist-item">
+                            <span>☐</span>
+                            <p>Are blank templates excluded from the actual report?</p>
+                        </div>
+
+                        <div class="business-example-box">
+                            <strong>Golden rule:</strong>
+                            Clean input first. Extract second. Review third. Post last.
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================================================
+                    COMPLETE SYSTEM FLOW
+                    ========================================================= -->
+
+                <div class="knowledge-card knowledge-card-flow"
+                    onclick="toggleHubAccordion(this)">
+
+                    <div class="card-header-flex">
+                        <span class="card-title-text">
+                            🚦 Understanding the LendingOps Flow
+                        </span>
+
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <p class="card-preview-text">
+                        Understand what happens from the moment a report is pasted until
+                        the information reaches the operational records.
+                    </p>
+
+                    <div class="hub-content hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+
+                        <div class="flow-step">
+                            <span class="flow-number">1</span>
+                            <strong>Paste Report</strong>
+                            <p>
+                                The daily operational report is placed into the workspace.
+                            </p>
+                        </div>
+
+                        <div class="flow-step">
+                            <span class="flow-number">2</span>
+                            <strong>Extract</strong>
+                            <p>
+                                LendingOps reads the report and extracts the important values.
+                            </p>
+                        </div>
+
+                        <div class="flow-step">
+                            <span class="flow-number">3</span>
+                            <strong>Validate</strong>
+                            <p>
+                                The system checks the report, date, market and historical
+                                information.
+                            </p>
+                        </div>
+
+                        <div class="flow-step">
+                            <span class="flow-number">4</span>
+                            <strong>Reconcile</strong>
+                            <p>
+                                DataCore helps check customer information against the
+                                operational registry.
+                            </p>
+                        </div>
+
+                        <div class="flow-step">
+                            <span class="flow-number">5</span>
+                            <strong>Review</strong>
+                            <p>
+                                Officers review the extracted information and correct
+                                permitted fields.
+                            </p>
+                        </div>
+
+                        <div class="flow-step">
+                            <span class="flow-number">6</span>
+                            <strong>Process</strong>
+                            <p>
+                                Approved information is processed into the appropriate
+                                operational records.
+                            </p>
+                        </div>
+
+                        <div class="formula-block">
+                            <strong>
+                                Extract → Validate → Reconcile → Review → Process
+                            </strong>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
         <!--END OF KNOWLEDGE HUB-->
@@ -172,8 +1098,8 @@
     <div id="workspace-page" class="page-container hidden">
         
         <div id="dynamic-nav-datacore" class="nav-datacore-panel">
-            <button id="jump-to-parser" class="nav-btn active">📥 1. Report Parser</button>
-            <button id="jump-to-datacore" class="nav-btn">⚙️ 2. Ops DataCore</button>
+            <button type="button" id="jump-to-parser" class="nav-btn active">📥 1. Report Parser</button>
+            <button type="button" id="jump-to-datacore" class="nav-btn">⚙️ 2. Ops DataCore</button>
         </div>
 
         <div class="main-wrapper" id="parser-section">
@@ -383,7 +1309,7 @@
                 </div>
             </div>
             
-            <hr class="section-divider" id="datacore-section">
+            <hr class="section-divider" hidden>
             <!-- =========================================================
                 DISBURSEMENT CORE
                 UI shell only — processing is handled by script2.js
@@ -599,7 +1525,11 @@
                 </div>
 
             </div>
-            <div class="datacore-container panel">
+
+            <!-- =========================================================
+                DATACORE SECTION
+                ========================================================= -->
+            <div id="datacore-section" class="datacore-container panel">
                 <div class="datacore-header">
                     <div>
                         <h3>🎛️ Field Registry Reconciliation DataCore</h3>
