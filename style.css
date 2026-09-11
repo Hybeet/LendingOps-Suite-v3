@@ -1,0 +1,1853 @@
+/* ========================================================= */
+/* SUBSECTION 2A: GLOBAL ARCHITECTURE VARIABLES              */
+/* ========================================================= */
+:root {
+    --primary: #0f172a;
+    --accent: #2563eb;
+    --success: #10b981;
+    --danger: #ef4444;
+    --light-border: #cbd5e1;
+    --bg-slate: #f1f5f9;
+}
+
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    color: #000000;
+    scroll-behavior: smooth;
+    background-color: var(--bg-slate);
+}
+
+/* =========================================================================
+   🌐 SYSTEM CORE BACKGROUND: 3D PERSPECTIVE INFINITE GRID SHADER
+   ========================================================================= */
+body.homepage-root-wrapper {
+    background-color: #f8fafc !important; 
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden; /* Prevents any 3D layout tilt from creating weird side scrollbars */
+    position: relative;
+}
+
+/* 🪐 The Pseudo-Element that warps the grid inward toward the horizon */
+body.homepage-root-wrapper::before {
+    content: "";
+    position: fixed;
+    top: -50%;  /* Stretches it up high past the viewport */
+    left: -50%; /* Widens it out to prevent empty corners during rotation */
+    width: 200%;
+    height: 200%;
+    
+    /* The core grid vector lines */
+    background-image: 
+        linear-gradient(to right, rgba(148, 163, 184, 0.406) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.4) 1px, transparent 1px) !important;
+    background-size: 40px 40px !important; /* Slightly larger grid squares look better in 3D */
+    
+    /* 🛸 THE 3D MAGIC: Tilts the grid back so it angles inward toward the horizon */
+    transform: perspective(500px) rotateX(60deg);
+    transform-origin: center center;
+    
+    /* Keeps it strictly behind your control center content cards */
+    z-index: -1; 
+    pointer-events: none;
+}
+
+/*NAVIGATION BAR STYLING */
+.global-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    box-sizing: border-box;
+    z-index: 2000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-logo { color: #ffffff; font-weight: 800; font-size: 1.3rem; }
+.nav-links { display: flex; gap: 15px; }
+.nav-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #94a3b8;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.nav-btn:hover, .nav-btn.active { background: var(--accent); color: #ffffff; border-color: var(--accent); }
+
+/* ========================================================= */
+/* SUBSECTION 2C: LAYOUT PORTALS & WRAPPERS                  */
+/* ========================================================= */
+.page-container { padding-top: 100px; padding-bottom: 40px; box-sizing: border-box; min-height: 100vh;  }
+.hidden { display: none !important; }
+
+.welcome-hero { text-align: center; max-width: 800px; margin: 40px auto 60px auto; }
+.welcome-hero h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 15px; }
+.welcome-hero p { font-size: 1.1rem; color: #475569; line-height: 1.6; }
+
+.info-cards-grid { 
+display: grid; 
+grid-template-columns: 1fr 1fr; 
+gap: 30px; 
+width: 92%;
+max-width: 1400px; 
+margin: 0 auto; 
+padding: 0 20px; 
+}
+
+.info-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); }
+.card-icon { font-size: 2.5rem; margin-bottom: 20px; }
+.gateway-card { border: 2px solid var(--accent); }
+.action-link-btn { margin-top: 25px; background: var(--accent); color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+.info-card :hover .card-icon { transform: translateY(-5px); transition: transform 0.3s ease; }
+/* =========================================================================
+   📊 ORIGINAL BUSINESS REPORT PARSER 3.0 CSS (UNTOUCHED CORE)
+   ========================================================================= */
+.main-wrapper { 
+    max-width: 1400px; 
+    margin: auto; 
+    background-color: #eaf2f9;
+    padding: 30px;
+}
+
+header { 
+    text-align: center; 
+    margin-bottom: 30px; 
+}
+
+header h2 { 
+    margin: 0 0 5px 0; 
+    color: var(--primary); 
+}
+
+.dashboard-grid { 
+    display: grid; 
+    grid-template-columns: 360px 1fr 400px; 
+    gap: 20px; 
+    align-items: start; 
+}
+
+.left-compartment { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
+
+.panel { 
+    background: white; 
+    padding: 20px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); 
+    border: 1px solid #e2e8f0;
+    box-sizing: border-box; 
+}
+
+.panel h3 { 
+    margin-top: 0; 
+    margin-bottom: 15px;
+    font-size: 1.1rem; 
+    color: var(--primary); 
+    border-bottom: 2px solid #cbd5e1; 
+    padding-bottom: 6px; 
+}
+
+textarea { 
+    width: 100%; 
+    height: 450px; 
+    border: 2px solid var(--light-border);
+    border-radius: 8px; 
+    padding: 12px; 
+    font-family: monospace; 
+    box-sizing: border-box; 
+    resize: none; 
+    background-color: #fafafa;
+}
+
+.mini-calc-panel {
+    background: #f8fafc; 
+    border: 1px dashed var(--accent);
+}
+
+.mini-calc-panel2 {
+    background: #f8fafc; 
+    border: 1px dashed var(--accent);
+    padding: 15px; 
+    border-radius: 8px;
+    margin-top: 15px;
+    box-sizing: border-box;
+}
+
+.calc-grid, .calc-grid2 { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.calc-input { 
+    width: 100%; 
+    padding: 8px !important; 
+    text-align: center;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.calc-action-btn { 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 8px; 
+    width: 100%;
+    font-weight: bold; 
+    font-size: 0.85rem;
+    cursor: pointer; 
+}
+
+.calc-action-btn:hover { 
+    background: greenyellow; 
+    color: #0f172a;
+}
+
+.calc-result-box { 
+    margin-top: 15px;
+    background-color: var(--primary); 
+    color: #ffffff;
+    padding: 10px; 
+    border-radius: 6px; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+}
+
+.calc-result-box strong { 
+    color: #38bdf8;
+    font-size: 1.1rem; 
+}
+
+.metadata-bar { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr;
+    gap: 15px; 
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #cbd5e1; 
+}
+
+.metadata-group label { 
+    display: block;
+    color: #475569;
+    text-transform: uppercase;
+    margin-bottom: 4px; 
+    font-size: 10px; 
+    font-weight: 800;
+    letter-spacing: 0.5px; 
+}
+
+.metadata-group input[type="text"] { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 4px; 
+    box-sizing: border-box;
+    background: #e2e8f0;
+    color: #0f172a;
+    font-weight: bold;
+    cursor: not-allowed; 
+}
+
+.form-section { 
+    background: #f8fafc; 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+    border: 1px solid #dbeafe; 
+}
+
+.form-section h4 { 
+    margin: 0 0 10px 0; 
+    color: var(--accent); 
+    border-bottom: 1px solid #bfdbfe; 
+}
+
+.grid-2 { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px; 
+}
+
+.input-group label { 
+    display: block; 
+    font-size: 11px; 
+    font-weight: bold; 
+    color: #64748b; 
+    text-transform: uppercase; 
+}
+
+input { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 6px; 
+    box-sizing: border-box; 
+}
+
+button { 
+    width: 100%; 
+    padding: 15px; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    font-size: 1rem; 
+}
+
+#calculateBtn { 
+    background: var(--success); 
+    color: white; 
+}
+
+.secondary-btn { 
+    background: var(--accent); 
+    color: white; 
+}
+
+.result-card { 
+    padding: 20px; 
+    border-radius: 12px; 
+    color: white; 
+    margin-bottom: 15px; 
+    text-align: center; 
+}
+
+.total-cash-card { 
+    background: var(--primary); 
+}
+
+.actual-coll-card { 
+    background: #1e293b; 
+    border-bottom: 4px solid var(--success); 
+}
+
+.result-card h2 { 
+    font-size: 2rem; 
+    margin: 5px 0; 
+    color: #60a5fa; 
+}
+
+.caution { 
+    background: #fff5f5; 
+    border-left: 5px solid var(--danger); 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-bottom: 20px; 
+    animation: shake 0.5s; 
+}
+
+@keyframes shake { 
+    0%, 100% { transform: translateX(0); } 
+    25% { transform: translateX(-5px); } 
+    50% { transform: translateX(5px); } 
+}
+
+.hidden { 
+    display: none; 
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 12px; 
+}
+
+th, td { 
+    text-align: left; 
+    padding: 8px; 
+    border-bottom: 1px solid #e2e8f0; 
+}
+
+footer button a {
+    color: rgb(69, 144, 236);
+    text-decoration: underline;
+}
+
+/* =========================================================================
+   🎛️ DATACORE MATRIX FRAMEWORK INTERFACE (APPENDED BELOW)
+   ========================================================================= */
+.datacore-container {
+    width: 100%;
+    max-width: 1400px !important;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    background: #ffffff;
+    border-top: 4px solid var(--accent) !important;
+    position: relative;
+}
+.datacore-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.datacore-header h3 {
+    margin: 0 0 5px 0;
+    border: none !important;
+}
+.status-subtext {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+.datacore-summary-badge {
+    background: #f1f5f9;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+}
+.datacore-summary-badge strong {
+    color: var(--success);
+}
+.table-scroll-container {
+    height: 400px;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+.datacore-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+.datacore-data-table th {
+    position: sticky;
+    top: 0;
+    background: #0f172a;
+    color: #f1f5f9;
+    padding: 12px 10px;
+    font-weight: 600;
+    z-index: 10;
+}
+.datacore-data-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    vertical-align: middle;
+}
+.grid-inline-input {
+    width: 100%;
+    padding: 6px !important;
+    border: 1px solid var(--light-border);
+    border-radius: 4px;
+    font-weight: bold;
+    color: #0f172a;
+}
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+.badge-active { background: #d1fae5; color: #065f46; }
+.badge-default { background: #fee2e2; color: #991b1b; }
+.badge-recovery { background: #e0f2fe; color: #0369a1; }
+
+.sync-matrix-btn {
+    background: #94a3b8;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: background 0.2s ease;
+}
+.loader-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.85);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+.spinner {
+    width: 40px; height: 40px;
+    border: 4px solid #e2e8f0;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 10px;
+}
+
+#datacore-loading-state {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* TRACKER NAVIGATION STYLING */
+.tracker-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+.tracker-btn {
+    background: #e2e8f0;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.tracker-active {
+    background: var(--accent) !important;
+    color: white !important;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================================================================
+   📌 DYNAMIC FLOATING DATACORE NAVIGATION LAYER
+   ========================================================================= */
+.nav-datacore-panel {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s ease-in-out;
+    z-index: 2500; /* Keeps it layered safely above tables and input forms */
+    margin-bottom: 20px;
+}
+
+/* Floating Corner State triggered via JS on Scroll */
+/*.nav-datacore-panel.scrolled {
+    position: fixed;
+    flex-direction: column;
+    top: 85px;      /* Just below the global navbar 
+    right: 25px;    /* Pins it to the exact right corner 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-color: #94a3b8;
+    animation: datacoreSnapIn 0.2s ease-out;
+}*/
+
+    .nav-datacore-panel.scrolled {
+        position: fixed !important;
+        top: 80px !important;
+        right: 15px !important;
+        left: auto !important;
+        width: auto !important;
+        max-width: 200px !important;
+        flex-direction: column !important;
+        background: rgba(255, 255, 255, 0.25) !important;
+        backdrop-filter: none  !important;
+        -webkit-backdrop-filter: none !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        border-color: #94a3b8;
+        border-radius: 12px !important;
+        z-index: 9999 !important;
+        animation: datacoreSnapIn 0.2s ease-out;
+    }
+
+    .nav-datacore-panel.scrolled .nav-btn {
+        width: 100% !important;
+        padding: 6px 10px !important;
+        font-size: 10.5px !important;
+        white-space: nowrap !important;
+        color: #2563eb !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+    }
+
+.nav-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+    font-weight: bold;
+    color: #334155;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.nav-btn.active {
+    background: #2563eb !important;
+    color: white !important;
+    border-color: #2563eb !important;
+}
+
+@keyframes datacoreSnapIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+   📚 UPSUIT 4.0 INTERACTIVE KNOWLEDGE HUB CUSTOM STYLING
+   ========================================================================= */
+
+#upsuit-knowledge-hub {
+    width: 92%; /* 💡 Ensures the grid container doesn't stretch too wide on large screens */
+    max-width: 1400px; /* 💡 56rem equals max-w-4xl (exactly matching your workspace buttons card length) */
+    margin-left: auto;  /* 💡 Centers the grid container horizontally */
+    margin-right: auto; /* 💡 Centers the grid container horizontally */
+    margin-top: 3.5rem;
+    margin-bottom: 4rem;
+    /*padding-left: 1rem;  /* Prevents touching the edge on mobile screens */
+    /*padding-right: 1rem; /* Prevents touching the edge on mobile screens */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.knowledge-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .knowledge-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.knowledge-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.knowledge-card:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transform: translateY(-1px);
+}
+
+.knowledge-card.active-card {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+}
+
+.hub-title-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hub-icon-box {
+    background-color: #eff6ff;
+    color: #2563eb;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title-text {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: 0.05em;
+}
+
+.toggle-icon {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.card-preview-text {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+/* Clearer dynamic code/math formulas styling */
+.formula-block {
+    background-color: #f1f5f9;
+    border-left: 3px solid #3b82f6;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.business-example-box {
+    font-size: 0.8125rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.highlight-blue { color: #2563eb; font-weight: bold; }
+.highlight-red { color: #dc2626; font-weight: bold; }
+
+.hub-content {
+    transition: all 0.25s ease-out;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================================================================
+   DATACORE ACTIVITY BADGE COLORS
+   ========================================================================= */
+
+.badge-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-default {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Full Default */
+.badge-full-default {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+/* Partial Default */
+.badge-partial-default {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+/* Recovery */
+.badge-recovery {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+/* Pay Down */
+.badge-paydown {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+/* Used Pay Down */
+.badge-usedpaydown {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Pay Off */
+.badge-payoff {
+    background: #ccfbf1;
+    color: #115e59;
+}
+
+/* Future Pay Down */
+.badge-futurepaydown {
+    background: #cffafe;
+    color: #155e75;
+}
+
+/* Outstanding Customer */
+.badge-outstanding {
+    background: #ffe4e6;
+    color: #9f1239;
+}
+
+/* Settled */
+.badge-finished {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+/* Future Loan / No Activity */
+.badge-future {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* =====================================================================
+   MULTI-CONDITION TRANSACTION BADGES
+   ===================================================================== */
+
+.transaction-condition-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+
+.transaction-condition-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+
+/* Pay Down */
+.badge-paydown {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+
+/* Used Pay Down */
+.badge-used-paydown {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+
+/* Recovery */
+.badge-recovery {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+
+/* Pay Off */
+.badge-payoff {
+    background: #ede7f6;
+    color: #6a1b9a;
+}
+
+
+/* Full Default */
+.badge-full-default {
+    background: #ffebee;
+    color: #c62828;
+}
+
+
+/* Partial Default */
+.badge-partial-default {
+    background: #fce4ec;
+    color: #ad1457;
+}
+
+
+/* Future Pay Down */
+.badge-future-paydown {
+    background: #e0f7fa;
+    color: #00838f;
+}
+
+/* =====================================================================
+   DATACORE VERTICAL TRANSACTION CONDITIONS
+   ===================================================================== */
+
+.transaction-condition-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    width: 100%;
+}
+
+
+.transaction-condition-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+
+.badge-paydown {
+    border: 1px solid #2563eb;
+}
+
+
+.badge-used-paydown {
+    border: 1px solid #7c3aed;
+}
+
+
+.badge-recovery {
+    border: 1px solid #059669;
+}
+
+
+.badge-payoff {
+    border: 1px solid #0891b2;
+}
+
+
+.badge-full-default {
+    border: 1px solid #dc2626;
+}
+
+
+.badge-partial-default {
+    border: 1px solid #ea580c;
+}
+
+
+.badge-future-paydown {
+    border: 1px solid #9333ea;
+}
+
+
+/* =====================================================================
+   HISTORICAL AUDIT
+   ===================================================================== */
+
+.historical-audit-box {
+    margin: 15px 0;
+    padding: 18px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+
+.historical-audit-box.hidden {
+    display: none;
+}
+
+
+.historical-audit-header {
+    margin-bottom: 15px;
+}
+
+
+.historical-audit-header h4 {
+    margin: 0 0 5px 0;
+    font-size: 15px;
+}
+
+
+.historical-audit-header p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+.historical-audit-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.historical-audit-row {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+
+.historical-audit-title {
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+.historical-audit-values {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+
+.audit-value-block {
+    min-width: 105px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+
+.audit-value-block span {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+
+.audit-value-block strong {
+    display: block;
+    font-size: 12px;
+}
+
+
+.audit-arrow {
+    font-weight: 700;
+}
+
+
+.audit-match {
+    font-weight: 700;
+}
+
+
+.audit-variance {
+    font-weight: 700;
+}
+
+
+.historical-audit-override {
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+
+.historical-audit-override label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+.historical-audit-override.hidden {
+    display: none;
+}
+
+
+.historical-audit-box.audit-confirmed {
+    border-width: 2px;
+}
+
+.ready-to-post {
+    background: #16a34a !important;
+    color: #ffffff !important;
+    border-color: #16a34a !important;
+    cursor: pointer !important;
+}
+
+
+/* =========================================================
+   DISBURSEMENT CORE
+   ========================================================= */
+
+.disbursement-launcher {
+    width: 100%;
+    margin: 0 0 18px;
+}
+
+.disbursement-launcher-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1px solid rgba(37, 99, 235, 0.16);
+    border-radius: 16px;
+    background: linear-gradient(
+        135deg,
+        #ffffff,
+        #f7faff
+    );
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    cursor: pointer;
+    text-align: left;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.disbursement-launcher-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.11);
+    border-color: rgba(37, 99, 235, 0.30);
+}
+
+.disbursement-launcher-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 42px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.disbursement-launcher-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.disbursement-launcher-content strong {
+    color: #0f172a;
+    font-size: 15px;
+}
+
+.disbursement-launcher-content small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.disbursement-launcher-arrow {
+    color: #2563eb;
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   MAIN PANEL
+   ========================================================= */
+
+.disbursement-core-panel {
+    width: 100%;
+    margin: 0 0 24px;
+    overflow: hidden;
+    border: 1px solid rgba(37, 99, 235, 0.14);
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.disbursement-core-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background:
+        linear-gradient(
+            135deg,
+            #f8fbff,
+            #eef5ff
+        );
+    border-bottom: 1px solid rgba(37, 99, 235, 0.10);
+}
+
+.disbursement-core-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.disbursement-core-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 54px;
+    border-radius: 15px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.disbursement-core-eyebrow {
+    margin-bottom: 3px;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+
+.disbursement-core-title h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 22px;
+}
+
+.disbursement-core-title p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.disbursement-core-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.disbursement-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+.disbursement-core-summary {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: #e2e8f0;
+}
+
+.disbursement-summary-item {
+    padding: 16px 20px;
+    background: #ffffff;
+}
+
+.disbursement-summary-item span {
+    display: block;
+    margin-bottom: 5px;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+.disbursement-summary-item strong {
+    color: #0f172a;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+.disbursement-message {
+    margin: 18px 20px 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.disbursement-empty-state {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.disbursement-empty-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 24px;
+}
+
+.disbursement-empty-state h3 {
+    margin: 0 0 7px;
+    color: #334155;
+    font-size: 16px;
+}
+
+.disbursement-empty-state p {
+    max-width: 500px;
+    margin: 0 auto;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   PREVIEW
+   ========================================================= */
+
+.disbursement-preview-area {
+    padding: 20px;
+}
+
+.disbursement-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.disbursement-preview-header h3 {
+    margin: 0 0 4px;
+    color: #0f172a;
+    font-size: 17px;
+}
+
+.disbursement-preview-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.disbursement-review-badge {
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.disbursement-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+}
+
+.disbursement-preview-table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.disbursement-preview-table th {
+    padding: 11px 10px;
+    background: #f8fafc;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.disbursement-preview-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.disbursement-preview-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.disbursement-preview-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+
+/* Editable cells */
+
+.disbursement-preview-input {
+    width: 100%;
+    min-width: 90px;
+    padding: 7px 8px;
+    border: 1px solid #dbe3ec;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    outline: none;
+}
+
+.disbursement-preview-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.disbursement-type-badge {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.disbursement-core-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #f8fafc;
+}
+
+.disbursement-footer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.disbursement-footer-info strong {
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.disbursement-footer-info span {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.disbursement-footer-actions {
+    display: flex;
+    gap: 9px;
+}
+
+.disbursement-secondary-btn,
+.disbursement-primary-btn {
+    padding: 10px 15px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.disbursement-secondary-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+}
+
+.disbursement-primary-btn {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.disbursement-primary-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.action-button-active {
+    filter: brightness(0.85);
+}
+
+
+.datacore-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.datacore-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    min-width: 88px;
+    height: 36px;
+
+    padding: 0 12px;
+
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #2563eb;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+}
+
+.datacore-refresh-btn:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #2563eb;
+}
+
+.datacore-refresh-btn:active:not(:disabled) {
+    background: #2563eb;
+    color: #ffffff;
+    transform: scale(0.96);
+}
+
+.datacore-refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    .disbursement-core-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .disbursement-core-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .disbursement-core-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .disbursement-footer-actions {
+        width: 100%;
+    }
+
+    .disbursement-secondary-btn,
+    .disbursement-primary-btn {
+        flex: 1;
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .historical-audit-values {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+
+    .audit-arrow {
+        text-align: center;
+        transform: rotate(90deg);
+    }
+
+
+    .audit-value-block {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+
+/* =========================================================================
+   📱 MOBILE LAYOUT COMPLIANCE ENGINE (Max-Width: 768px)
+   ========================================================================= */
+@media screen and (max-width: 768px) {
+    
+    /* 1. Prevent Horizontal Page Bleeding */
+    html, body {
+        width: 100%;
+        overflow-x: hidden !important;
+        font-size: 14px; /* Slight typographic downscale for mobile high-density screens */
+    }
+
+    /* 2. Convert Dual Columns / Sidebars into a Stacked Stream */
+    .workspace-container, 
+    main, 
+    .dashboard-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 10px !important;
+        gap: 15px !important;
+    }
+
+    /* 3. Force Side Panels, Floating Calculators & Modules to Full Width */
+    aside, 
+    .sidebar-panel, 
+    .calculator-card, 
+    .widget-box,
+    #dashboard,
+    #tableContainer {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        position: relative !important; /* Strips unexpected desktop fixed alignments */
+        top: auto !important;
+        right: auto !important;
+        margin: 0 0 15px 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 4. Form Field Packing Optimization */
+    .form-group-row, 
+    .input-grid-layout {
+        grid-template-columns: 100% !important; /* Break multi-column input alignments */
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    input[type="text"], 
+    input[type="number"], 
+    textarea, 
+    select {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        font-size: 16px !important; /* ⚠️ CRITICAL: Prevents iOS Safari from forcing an ugly automatic zoom on focus */
+        padding: 12px !important; /* Enhanced touch target size */
+    }
+
+    /* 5. Fluid Buttons */
+    button, 
+    .btn, 
+    #autoFillBtn, 
+    #calculateBtn, 
+    #calcNextDayBtn {
+        width: 100% !important;
+        padding: 14px !important;
+        font-size: 15px !important;
+        text-align: center;
+    }
+
+    /* 6. DataCore Ledger Table Horizontal Scroll Safeguard */
+    #tableContainer, 
+    .data-table-wrapper {
+        width: 100% !important;
+        overflow-x: auto !important; /* Adds a fluid horizontal swipe layer isolated to just the table data matrix */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        width: 100% !important;
+        white-space: nowrap; /* Keeps rows neat while panning */
+    }
+
+    /* 7. Landing Page Cards Optimization */
+    .card-control-center-wrapper {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+    
+    .card-control-center-wrapper > div {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+}
+
+/* =========================================================================
+   📱 MOBILE HEADER & CARD COMPACT ENGINE (Max-Width: 768px)
+   ========================================================================= */
+@media screen and (max-width: 768px) {
+
+    /* 1. Slim Down the Main Top Navigation Bar Container */
+    .global-navbar {
+        padding: 10px 14px !important;
+        height: auto !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Keep Title Small and Compact */
+    .global-navbar .nav-logo {
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.3px;
+    }
+
+    /* Reduce Button Sizing to Fit Side-by-Side on Narrow Screen Viewports */
+    .global-navbar .nav-links {
+        display: flex !important;
+        gap: 6px !important;
+    }
+
+    .global-navbar .nav-btn {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+    }
+
+    /* 2. Compact the Floating Workspace Section Jumper Bar Panels */
+    .nav-datacore-panel {
+        display: flex !important;
+        flex-direction: row !important;
+        position: relative;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 6px !important;
+        gap: 8px !important;
+        box-sizing: border-box !important;
+        background: rgb(248,250,252) !important;
+    }
+
+    .nav-datacore-panel .nav-btn {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        padding: 8px 10px !important;
+        font-size: 11px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    /* 3. Drop Wording Scaling in Hero Box Components */
+    .welcome-hero {
+        padding: 20px 14px !important;
+        text-align: center !important;
+    }
+
+    .welcome-hero h1 {
+        font-size: 22px !important;
+        line-height: 1.25 !important;
+        margin-bottom: 8px !important;
+    }
+
+    .welcome-hero p {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+    }
+
+    /* 4. Downscale Main Home Grid Content & Text Descriptions */
+    .info-cards-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        padding: 0 12px !important;
+    }
+
+    .info-card {
+        padding: 16px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    .info-card .card-icon {
+        font-size: 20px !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Card Titles */
+    .info-card h3 {
+        font-size: 15px !important;
+        margin-top: 4px !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* Card Paragraph Wordings */
+    .info-card p {
+        font-size: 12px !important;
+        line-height: 1.45 !important;
+        color: #4b5563 !important;
+    }
+
+    /* Compact Action Buttons inside Cards */
+    .info-card .action-link-btn {
+        width: 100% !important;
+        padding: 10px !important;
+        font-size: 13px !important;
+        margin-top: 12px !important;
+        text-align: center;
+    }
+
+    /* 5. Sub-Header Titles inside Workspace Views */
+    #parser-section header h2 {
+        font-size: 18px !important;
+        text-align: center;
+    }
+
+    #parser-section header p {
+        font-size: 12px !important;
+        text-align: center;
+    }
+}
