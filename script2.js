@@ -2053,7 +2053,7 @@
 
             const line =
                 String(lines[i] || "")
-                    .replace(/\u200B/g, "")
+                    .replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u2060]/g, "")
                     .trim();
 
             if (
@@ -2093,7 +2093,7 @@
 
             const line =
                 String(lines[i] || "")
-                    .replace(/\u200B/g, "")
+                    .replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u2060]/g, "")
                     .trim();
 
             if (!line) {

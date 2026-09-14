@@ -29,7 +29,7 @@ const API_CONFIG = Object.freeze({
         "https://script.google.com/macros/s/AKfycby5bNsy5F8CwyczbH0y8495nBXLRN0yTRzivHv6jTS87qRuq1Mbugzs5K1PgoI0N_jN_w/exec",
 
     REQUEST_TIMEOUT:
-        30000
+        90000
 });
 
 
