@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LendingOps Suite</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
@@ -13,8 +13,77 @@
         <!--<div><img src="/images/TOFS LOGO 2.png" alt="T.O.F.S" height="20"></div>-->
         <div class="nav-logo">LendingOps Suite</div>
         <div class="nav-links">
-            <button id="nav-home-btn" class="nav-btn active">🏠 Home Dashboard</button>
-            <button id="nav-workspace-btn" class="nav-btn">💼 Daily Workspace</button>
+
+            <!-- THEME SELECTOR -->
+            <div class="theme-selector">
+
+                <button
+                    id="theme-toggle-btn"
+                    class="theme-toggle-btn"
+                    type="button"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                >
+                    💻 System
+                    <span class="theme-chevron">▾</span>
+                </button>
+
+                <div
+                    id="theme-menu"
+                    class="theme-menu"
+                    role="menu"
+                >
+
+                    <button
+                        type="button"
+                        class="theme-option"
+                        data-theme-choice="light"
+                        role="menuitem"
+                    >
+                        <span>☀️</span>
+                        <span>Light</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="theme-option"
+                        data-theme-choice="dark"
+                        role="menuitem"
+                    >
+                        <span>🌙</span>
+                        <span>Dark</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="theme-option"
+                        data-theme-choice="system"
+                        role="menuitem"
+                    >
+                        <span>💻</span>
+                        <span>System</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXISTING NAVIGATION -->
+            <button
+                id="nav-home-btn"
+                class="nav-btn active"
+            >
+                🏠 Home Dashboard
+            </button>
+
+            <button
+                id="nav-workspace-btn"
+                class="nav-btn"
+            >
+                💼 Daily Workspace
+            </button>
+
         </div>
     </nav>
 
@@ -1615,5 +1684,6 @@
     </div>
     <script src="script.js"></script>
     <script src="script2.js"></script>
+    <script src="theme.js"></script>
 </body>
 </html>

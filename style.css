@@ -2146,3 +2146,1272 @@ footer button a {
         text-align: center;
     }
 }
+
+
+
+/* =========================================================
+   🎨 LENDINGOPS SUITE — THEME SYSTEM
+   Light / Dark / System
+   ========================================================= */
+
+
+/* =========================================================
+   THEME VARIABLES
+   ========================================================= */
+
+:root {
+
+    /* Main colors */
+    --theme-bg: #f1f5f9;
+    --theme-surface: #ffffff;
+    --theme-surface-secondary: #f8fafc;
+    --theme-surface-tertiary: #f1f5f9;
+
+    /* Text */
+    --theme-text: #0f172a;
+    --theme-text-secondary: #475569;
+    --theme-text-muted: #64748b;
+
+    /* Borders */
+    --theme-border: #e2e8f0;
+    --theme-border-strong: #cbd5e1;
+
+    /* Inputs */
+    --theme-input-bg: #ffffff;
+    --theme-input-text: #0f172a;
+
+    /* Tables */
+    --theme-table-hover: #f8fbff;
+    --theme-table-row: #ffffff;
+
+    /* Navigation */
+    --theme-nav: #0f172a;
+    --theme-nav-text: #ffffff;
+
+    /* Shadows */
+    --theme-shadow: rgba(15, 23, 42, 0.08);
+
+    /* Grid */
+    --theme-grid-line: rgba(148, 163, 184, 0.40);
+
+    /* Code / formula */
+    --theme-code-bg: #f1f5f9;
+
+    /* Transitions */
+    --theme-transition: 0.25s ease;
+}
+
+
+/* =========================================================
+   DARK THEME VARIABLES
+   ========================================================= */
+
+html[data-theme="dark"] {
+
+    --theme-bg: #0b1120;
+
+    --theme-surface: #111827;
+
+    --theme-surface-secondary: #172033;
+
+    --theme-surface-tertiary: #1e293b;
+
+    --theme-text: #f8fafc;
+
+    --theme-text-secondary: #cbd5e1;
+
+    --theme-text-muted: #94a3b8;
+
+    --theme-border: #334155;
+
+    --theme-border-strong: #475569;
+
+    --theme-input-bg: #172033;
+
+    --theme-input-text: #f8fafc;
+
+    --theme-table-hover: #1e293b;
+
+    --theme-table-row: #111827;
+
+    --theme-nav: #020617;
+
+    --theme-nav-text: #f8fafc;
+
+    --theme-shadow: rgba(0, 0, 0, 0.35);
+
+    --theme-grid-line: rgba(100, 116, 139, 0.25);
+
+    --theme-code-bg: #172033;
+}
+
+
+/* =========================================================
+   GLOBAL THEME APPLICATION
+   ========================================================= */
+
+html,
+body {
+    transition:
+        background-color var(--theme-transition),
+        color var(--theme-transition);
+}
+
+body {
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+}
+
+
+/* =========================================================
+   HOMEPAGE
+   ========================================================= */
+
+body.homepage-root-wrapper {
+    background-color: var(--theme-bg) !important;
+}
+
+
+/* Dark 3D grid */
+
+html[data-theme="dark"] body.homepage-root-wrapper::before {
+
+    background-image:
+        linear-gradient(
+            to right,
+            var(--theme-grid-line) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            to bottom,
+            var(--theme-grid-line) 1px,
+            transparent 1px
+        ) !important;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.global-navbar {
+    background: var(--theme-nav);
+}
+
+.nav-logo {
+    color: var(--theme-nav-text);
+}
+
+/* =========================================================
+   🎨 THEME SELECTOR — NAVBAR ALIGNMENT
+   ========================================================= */
+
+.global-navbar .theme-selector {
+    align-self: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    transform: translateY(5px);
+}
+
+.global-navbar .theme-toggle-btn {
+    margin: 0 !important;
+    align-self: center !important;
+}
+
+/* Theme selector */
+
+.theme-selector {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+
+/* Theme button */
+
+.theme-toggle-btn {
+    width: auto !important;
+    min-width: 105px;
+    margin: 0 !important;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 10px 15px;
+
+    background: transparent;
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    border-radius: 6px;
+
+    color: #94a3b8;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+
+.theme-chevron {
+    font-size: 11px;
+    transition: transform 0.2s ease;
+}
+
+
+/* =========================================================
+   THEME DROPDOWN
+   ========================================================= */
+
+.theme-menu {
+
+    position: absolute;
+
+    top: calc(100% + 8px);
+    right: 0;
+
+    width: 155px;
+
+    padding: 6px;
+
+    background: var(--theme-surface);
+
+    border: 1px solid var(--theme-border);
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 12px 30px var(--theme-shadow);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transform:
+        translateY(-5px);
+
+    transition:
+        opacity 0.18s ease,
+        visibility 0.18s ease,
+        transform 0.18s ease;
+
+    z-index: 10000;
+}
+
+
+.theme-menu.open {
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transform:
+        translateY(0);
+}
+
+
+/* Theme options */
+
+.theme-option {
+
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    padding: 10px 12px !important;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background: transparent;
+
+    color: var(--theme-text);
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+
+.theme-option:hover {
+
+    background: var(--theme-surface-tertiary);
+
+}
+
+
+.theme-option.selected {
+
+    background: rgba(37, 99, 235, 0.12);
+
+    color: #2563eb;
+}
+
+
+html[data-theme="dark"]
+.theme-option.selected {
+
+    background: rgba(59, 130, 246, 0.18);
+
+    color: #60a5fa;
+}
+
+
+/* =========================================================
+   GENERAL PAGE CONTENT
+   ========================================================= */
+
+.page-container {
+    color: var(--theme-text);
+}
+
+
+.welcome-hero h1 {
+    color: var(--theme-text);
+}
+
+
+.welcome-hero p {
+    color: var(--theme-text-secondary);
+}
+
+
+/* =========================================================
+   HOME CARDS
+   ========================================================= */
+
+.info-card {
+
+    background: var(--theme-surface);
+
+    border-color: var(--theme-border);
+
+    box-shadow:
+        0 10px 25px var(--theme-shadow);
+}
+
+
+.info-card p {
+    color: var(--theme-text-secondary);
+}
+
+
+html[data-theme="dark"]
+.info-card.gateway-card {
+
+    background:
+        linear-gradient(
+            135deg,
+            #111827,
+            #172033
+        );
+}
+
+
+/* =========================================================
+   REPORT PARSER
+   ========================================================= */
+
+.main-wrapper {
+
+    background-color: var(--theme-surface-secondary);
+
+    color: var(--theme-text);
+}
+
+
+.panel {
+
+    background: var(--theme-surface);
+
+    border-color: var(--theme-border);
+
+    box-shadow:
+        0 4px 10px var(--theme-shadow);
+}
+
+
+.panel h3 {
+
+    color: var(--theme-text);
+
+    border-bottom-color:
+        var(--theme-border-strong);
+}
+
+
+textarea {
+
+    background-color:
+        var(--theme-input-bg);
+
+    color:
+        var(--theme-input-text);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+.metadata-bar {
+
+    background:
+        var(--theme-surface-tertiary);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+.metadata-group label {
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.metadata-group input[type="text"] {
+
+    background:
+        var(--theme-surface-tertiary);
+
+    color:
+        var(--theme-text);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+.form-section {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.input-group label {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+input,
+select,
+textarea {
+
+    background-color:
+        var(--theme-input-bg);
+
+    color:
+        var(--theme-input-text);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+/* =========================================================
+   CALCULATOR
+   ========================================================= */
+
+.mini-calc-panel,
+.mini-calc-panel2 {
+
+    background:
+        var(--theme-surface-secondary);
+}
+
+
+.calc-result-box {
+
+    background:
+        var(--theme-nav);
+
+}
+
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+th,
+td {
+
+    border-bottom-color:
+        var(--theme-border);
+
+}
+
+
+td {
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+table {
+
+    color:
+        var(--theme-text);
+}
+
+
+/* =========================================================
+   DATACORE
+   ========================================================= */
+
+.datacore-container {
+
+    background:
+        var(--theme-surface);
+
+}
+
+
+.status-subtext {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.datacore-summary-badge {
+
+    background:
+        var(--theme-surface-tertiary);
+
+    border-color:
+        var(--theme-border);
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.table-scroll-container {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.datacore-data-table th {
+
+    background:
+        #020617;
+
+    color:
+        #f1f5f9;
+}
+
+
+.datacore-data-table td {
+
+    background:
+        var(--theme-table-row);
+
+    color:
+        var(--theme-text-secondary);
+
+    border-bottom-color:
+        var(--theme-border);
+}
+
+
+.grid-inline-input {
+
+    background:
+        var(--theme-input-bg);
+
+    color:
+        var(--theme-input-text);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+/* =========================================================
+   DATACORE NAVIGATION
+   ========================================================= */
+
+.nav-datacore-panel {
+
+    background:
+        var(--theme-surface);
+
+    border-color:
+        var(--theme-border);
+
+    box-shadow:
+        0 4px 12px var(--theme-shadow);
+}
+
+
+.nav-btn {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border-strong);
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.nav-btn:hover {
+
+    background:
+        var(--theme-surface-tertiary);
+}
+
+
+.nav-btn.active {
+
+    background:
+        #2563eb !important;
+
+    color:
+        #ffffff !important;
+}
+
+
+/* =========================================================
+   KNOWLEDGE HUB
+   ========================================================= */
+
+.knowledge-card {
+
+    background:
+        var(--theme-surface);
+
+    border-color:
+        var(--theme-border);
+
+    box-shadow:
+        0 1px 3px var(--theme-shadow);
+}
+
+
+.knowledge-card:hover {
+
+    border-color:
+        #3b82f6;
+}
+
+
+.knowledge-card.active-card {
+
+    background:
+        var(--theme-surface-secondary);
+
+}
+
+
+.card-title-text {
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.card-preview-text {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.knowledge-step,
+.troubleshooting-step,
+.checklist-item,
+.flow-step {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.knowledge-step p,
+.troubleshooting-step p,
+.flow-step p {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.formula-block {
+
+    background:
+        var(--theme-code-bg);
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.business-example-box {
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.historical-audit-box {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.historical-audit-row {
+
+    background:
+        var(--theme-surface);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.audit-value-block {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+/* =========================================================
+   DISBURSEMENT CORE
+   ========================================================= */
+
+.disbursement-launcher-btn {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--theme-surface),
+            var(--theme-surface-secondary)
+        );
+
+    border-color:
+        rgba(37, 99, 235, 0.25);
+
+    box-shadow:
+        0 8px 24px var(--theme-shadow);
+}
+
+
+.disbursement-launcher-content strong {
+
+    color:
+        var(--theme-text);
+}
+
+
+.disbursement-launcher-content small {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.disbursement-launcher-icon {
+
+    background:
+        rgba(37, 99, 235, 0.12);
+}
+
+
+.disbursement-core-panel {
+
+    background:
+        var(--theme-surface);
+
+    border-color:
+        rgba(37, 99, 235, 0.25);
+
+    box-shadow:
+        0 14px 40px var(--theme-shadow);
+}
+
+
+.disbursement-core-header {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--theme-surface-secondary),
+            var(--theme-surface-tertiary)
+        );
+
+    border-bottom-color:
+        var(--theme-border);
+}
+
+
+.disbursement-core-title h2 {
+
+    color:
+        var(--theme-text);
+}
+
+
+.disbursement-core-title p {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.disbursement-core-status {
+
+    background:
+        var(--theme-surface);
+
+    border-color:
+        var(--theme-border);
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.disbursement-core-summary {
+
+    background:
+        var(--theme-border);
+}
+
+
+.disbursement-summary-item {
+
+    background:
+        var(--theme-surface);
+}
+
+
+.disbursement-summary-item strong {
+
+    color:
+        var(--theme-text);
+}
+
+
+.disbursement-preview-header h3 {
+
+    color:
+        var(--theme-text);
+}
+
+
+.disbursement-preview-header p {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.disbursement-table-wrap {
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.disbursement-preview-table th {
+
+    background:
+        var(--theme-surface-tertiary);
+
+    color:
+        var(--theme-text-secondary);
+
+    border-bottom-color:
+        var(--theme-border);
+}
+
+
+.disbursement-preview-table td {
+
+    background:
+        var(--theme-table-row);
+
+    color:
+        var(--theme-text-secondary);
+
+    border-bottom-color:
+        var(--theme-border);
+}
+
+
+.disbursement-preview-table tbody tr:hover td {
+
+    background:
+        var(--theme-table-hover);
+}
+
+
+.disbursement-preview-input {
+
+    background:
+        var(--theme-input-bg);
+
+    color:
+        var(--theme-input-text);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+.disbursement-type-badge {
+
+    background:
+        var(--theme-surface-tertiary);
+
+    color:
+        var(--theme-text-secondary);
+}
+
+
+.disbursement-core-footer {
+
+    background:
+        var(--theme-surface-secondary);
+
+    border-color:
+        var(--theme-border);
+}
+
+
+.disbursement-footer-info strong {
+
+    color:
+        var(--theme-text);
+}
+
+
+.disbursement-footer-info span {
+
+    color:
+        var(--theme-text-muted);
+}
+
+
+.disbursement-secondary-btn {
+
+    background:
+        var(--theme-surface);
+
+    color:
+        var(--theme-text-secondary);
+
+    border-color:
+        var(--theme-border-strong);
+}
+
+
+/* =========================================================
+   REFRESH BUTTONS
+   ========================================================= */
+
+.datacore-refresh-btn {
+
+    background:
+        var(--theme-surface);
+
+    border-color:
+        rgba(59, 130, 246, 0.35);
+
+    color:
+        #60a5fa;
+}
+
+
+.datacore-refresh-btn:hover:not(:disabled) {
+
+    background:
+        rgba(37, 99, 235, 0.12);
+}
+
+
+/* =========================================================
+   FLOATING DATACORE PANEL — DARK
+   ========================================================= */
+
+html[data-theme="dark"]
+.nav-datacore-panel.scrolled {
+
+    background:
+        rgba(17, 24, 39, 0.92) !important;
+
+    border-color:
+        rgba(148, 163, 184, 0.25) !important;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+
+
+html[data-theme="dark"]
+.nav-datacore-panel.scrolled .nav-btn {
+
+    background:
+        rgba(15, 23, 42, 0.92) !important;
+
+    color:
+        #60a5fa !important;
+
+    border-color:
+        rgba(96, 165, 250, 0.20) !important;
+}
+
+
+/* =========================================================
+   DARK THEME — ERROR / WARNING AREAS
+   ========================================================= */
+
+html[data-theme="dark"]
+.error-row {
+
+    background:
+        rgba(154, 52, 18, 0.16);
+
+    border-color:
+        rgba(251, 146, 60, 0.30);
+}
+
+
+html[data-theme="dark"]
+.knowledge-tip {
+
+    background:
+        rgba(37, 99, 235, 0.14);
+
+    border-color:
+        rgba(96, 165, 250, 0.30);
+
+    color:
+        #93c5fd;
+}
+
+
+
+/* =========================================================
+   MOBILE THEME SELECTOR
+   ========================================================= */
+
+@media screen and (max-width: 768px) {
+
+    .theme-selector {
+
+        flex: 0 0 auto;
+
+    }
+
+
+    .theme-toggle-btn {
+
+        min-width: auto;
+
+        padding:
+            6px 10px !important;
+
+        font-size:
+            11px !important;
+
+    }
+
+
+    .theme-menu {
+
+        right: 0;
+
+        width: 145px;
+
+    }
+
+
+    .theme-option {
+
+        font-size:
+            12px;
+
+        padding:
+            9px 10px !important;
+
+    }
+
+}
+
+/* =========================================================
+   🌙 DARK THEME — ERROR / CAUTION BOX
+   ========================================================= */
+
+/* Manual Dark Theme */
+html[data-theme="dark"] .caution,
+body[data-theme="dark"] .caution,
+html.dark-theme .caution,
+body.dark-theme .caution,
+html.dark-mode .caution,
+body.dark-mode .caution {
+    background: #2a1114 !important;
+    border-left-color: #ef4444 !important;
+    color: #f8fafc !important;
+}
+
+/* Make ALL text inside the error box readable */
+html[data-theme="dark"] .caution *,
+body[data-theme="dark"] .caution *,
+html.dark-theme .caution *,
+body.dark-theme .caution *,
+html.dark-mode .caution *,
+body.dark-mode .caution * {
+    color: #f8fafc !important;
+}
+
+/* Error heading */
+html[data-theme="dark"] .caution strong,
+body[data-theme="dark"] .caution strong,
+html.dark-theme .caution strong,
+body.dark-theme .caution strong,
+html.dark-mode .caution strong,
+body.dark-mode .caution strong {
+    color: #fecaca !important;
+}
+
+/* Error list */
+html[data-theme="dark"] .caution li,
+body[data-theme="dark"] .caution li,
+html.dark-theme .caution li,
+body.dark-theme .caution li,
+html.dark-mode .caution li,
+body.dark-mode .caution li {
+    color: #f8fafc !important;
+}
+
+/* =========================================================
+   💻 SYSTEM THEME — ERROR / CAUTION BOX
+   ========================================================= */
+
+@media (prefers-color-scheme: dark) {
+
+    html[data-theme="system"] .caution,
+    body[data-theme="system"] .caution {
+        background: #2a1114 !important;
+        border-left-color: #ef4444 !important;
+        color: #f8fafc !important;
+    }
+
+    html[data-theme="system"] .caution *,
+    body[data-theme="system"] .caution * {
+        color: #f8fafc !important;
+    }
+
+    html[data-theme="system"] .caution strong,
+    body[data-theme="system"] .caution strong {
+        color: #fecaca !important;
+    }
+
+    html[data-theme="system"] .caution li,
+    body[data-theme="system"] .caution li {
+        color: #f8fafc !important;
+    }
+}
+
+/* =========================================================
+   🚨 ERROR BOX — DIRECT DARK THEME OVERRIDE
+   ========================================================= */
+
+html[data-theme="dark"] #errorBox,
+body[data-theme="dark"] #errorBox,
+html.dark-theme #errorBox,
+body.dark-theme #errorBox,
+html.dark-mode #errorBox,
+body.dark-mode #errorBox {
+    background: #2a1114 !important;
+    color: #f8fafc !important;
+    border-left-color: #ef4444 !important;
+}
+
+html[data-theme="dark"] #errorBox *,
+body[data-theme="dark"] #errorBox *,
+html.dark-theme #errorBox *,
+body.dark-theme #errorBox *,
+html.dark-mode #errorBox *,
+body.dark-mode #errorBox * {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] #errorBox strong,
+body[data-theme="dark"] #errorBox strong,
+html.dark-theme #errorBox strong,
+body.dark-theme #errorBox strong,
+html.dark-mode #errorBox strong,
+body.dark-mode #errorBox strong {
+    color: #fecaca !important;
+}
+
+html[data-theme="dark"] #errorBox li,
+body[data-theme="dark"] #errorBox li,
+html.dark-theme #errorBox li,
+body.dark-theme #errorBox li,
+html.dark-mode #errorBox li,
+body.dark-mode #errorBox li {
+    color: #f8fafc !important;
+}
+
