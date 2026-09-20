@@ -3415,3 +3415,14 @@ body.dark-mode #errorBox li {
     color: #f8fafc !important;
 }
 
+/* =========================================================
+   BUSINESS REPORT PARSER — THEME-AWARE HEADER
+   ========================================================= */
+
+#parser-section > header h2 {
+    color: var(--parser-heading-text) !important;
+}
+
+#parser-section > header p {
+    color: var(--parser-subheading-text) !important;
+}
