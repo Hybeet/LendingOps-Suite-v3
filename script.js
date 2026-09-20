@@ -18,6 +18,7 @@
 let dataCoreCustomerLoadPromise = null;
 let dataCoreCustomerLoadVersion = 0;
 let dataCoreCustomerLoadStarted = false;
+let dataCoreCustomerLoadController = null;
 
 
 const API_CONFIG = Object.freeze({
@@ -78,6 +79,9 @@ const appState = {
     }
 };
 
+const CALCULATE_BUTTON_DEFAULT_TEXT =
+    "Step 2: Run Calculation & Sync Ledger";
+
 /* =========================================================================
    3. SAFE DOM HELPERS
    ========================================================================= */
@@ -133,72 +137,258 @@ function escapeRegExp(string) {
 async function apiRequest(url, options = {}) {
 
     const controller =
-        new AbortController();
+        options.signal
+            ? null
+            : new AbortController();
+
+    const requestSignal =
+        options.signal ||
+        controller.signal;
 
     const timeout =
         setTimeout(
-            () => controller.abort(),
+            () => {
+
+                if (controller) {
+                    controller.abort();
+                }
+
+            },
             API_CONFIG.REQUEST_TIMEOUT
         );
+
 
     try {
 
         const requestURL =
-            String(url || "").trim();
+            String(
+                url || ""
+            ).trim();
 
 
         if (!requestURL) {
 
             throw new Error(
-                "API endpoint is not configured."
+                "The requested service is not available."
             );
 
         }
 
 
         /*
-         * ---------------------------------------------------------------
-         * FRONTEND API REQUEST
-         * ---------------------------------------------------------------
+         * =========================================================
+         * REQUEST METHOD
+         * =========================================================
          *
          * IMPORTANT:
          *
-         * The frontend does NOT handle the DataCore API key.
+         * GET / HEAD requests may safely retry.
          *
-         * Frontend
-         *    ↓
-         * Business Parser
-         *    ↓
-         * DataCore
-         *
-         * DATACORE_API_KEY remains inside
-         * Business Parser Script Properties.
-         * ---------------------------------------------------------------
+         * POST / PUT / PATCH / DELETE requests MUST NOT
+         * automatically retry because they may perform writes.
+         * =========================================================
          */
 
+        const requestMethod =
+            String(
+                options.method ||
+                "GET"
+            ).toUpperCase();
 
-        const response =
-            await fetch(
-                requestURL,
-                {
-                    ...options,
 
-                    signal:
-                        controller.signal,
+        const retryableMethod =
+            requestMethod === "GET" ||
+            requestMethod === "HEAD";
 
-                    cache:
-                        "no-store",
 
-                    credentials:
-                        "omit"
+        /*
+         * GET / HEAD:
+         *     maximum 2 attempts
+         *
+         * POST / PUT / PATCH / DELETE:
+         *     exactly 1 attempt
+         */
+
+        const maxAttempts =
+            retryableMethod
+                ? 2
+                : 1;
+
+
+        let response =
+            null;
+
+
+        for (
+            let attempt = 1;
+            attempt <= maxAttempts;
+            attempt++
+        ) {
+
+            let attemptURL =
+                requestURL;
+
+
+            /*
+             * -----------------------------------------------------
+             * CACHE-BUSTER
+             * -----------------------------------------------------
+             *
+             * ONLY used for the second attempt of a retryable
+             * request.
+             *
+             * POST requests can NEVER reach this block because
+             * maxAttempts = 1 for POST.
+             * -----------------------------------------------------
+             */
+
+            if (
+                attempt > 1
+            ) {
+
+                const separator =
+                    attemptURL.includes("?")
+                        ? "&"
+                        : "?";
+
+
+                attemptURL +=
+                    `${separator}_cb=${Date.now()}`;
+
+            }
+
+
+            try {
+
+                response =
+                    await fetch(
+                        attemptURL,
+                        {
+                            ...options,
+
+                            signal:
+                                requestSignal,
+
+                            cache:
+                                "no-store",
+
+                            credentials:
+                                "omit",
+
+                            redirect:
+                                "follow"
+                        }
+                    );
+
+
+            } catch (
+                fetchError
+            ) {
+
+
+                /*
+                 * -------------------------------------------------
+                 * TIMEOUT
+                 * -------------------------------------------------
+                 */
+
+                if (
+                    fetchError?.name ===
+                    "AbortError"
+                ) {
+
+                    throw fetchError;
+
                 }
-            );
 
 
-        if (!response.ok) {
+                /*
+                 * -------------------------------------------------
+                 * RETRY NETWORK FAILURE
+                 *
+                 * ONLY GET / HEAD can retry.
+                 * -------------------------------------------------
+                 */
+
+                if (
+                    retryableMethod &&
+                    attempt === 1
+                ) {
+
+                    continue;
+
+                }
+
+
+                throw new Error(
+                    "The server could not be reached. Please try again."
+                );
+
+            }
+
+
+            /*
+             * -----------------------------------------------------
+             * SUCCESS
+             * -----------------------------------------------------
+             */
+
+            if (
+                response &&
+                response.ok
+            ) {
+
+                break;
+
+            }
+
+
+            /*
+             * -----------------------------------------------------
+             * RETRY HTTP 404
+             *
+             * ONLY GET / HEAD can retry.
+             * -----------------------------------------------------
+             */
+
+            if (
+                retryableMethod &&
+                response &&
+                response.status === 404 &&
+                attempt === 1
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+             * -----------------------------------------------------
+             * ALL OTHER HTTP FAILURES
+             * -----------------------------------------------------
+             */
 
             throw new Error(
-                `Server returned HTTP ${response.status}.`
+                "The server could not complete the request."
+            );
+
+        }
+
+
+        /*
+         * ---------------------------------------------------------
+         * FINAL RESPONSE VALIDATION
+         * ---------------------------------------------------------
+         */
+
+        if (
+            !response ||
+            !response.ok
+        ) {
+
+            throw new Error(
+                "The server could not complete the request."
             );
 
         }
@@ -213,13 +403,14 @@ async function apiRequest(url, options = {}) {
         ) {
 
             throw new Error(
-                "Server returned an empty response."
+                "The server returned an empty response."
             );
 
         }
 
 
         let result;
+
 
         try {
 
@@ -228,10 +419,10 @@ async function apiRequest(url, options = {}) {
                     responseText
                 );
 
-        } catch (parseError) {
+        } catch {
 
             throw new Error(
-                "Server returned an invalid JSON response."
+                "The server returned an invalid response."
             );
 
         }
@@ -240,22 +431,58 @@ async function apiRequest(url, options = {}) {
         return result;
 
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
+
+
+        /*
+         * ---------------------------------------------------------
+         * TIMEOUT
+         * ---------------------------------------------------------
+         */
 
         if (
-            error &&
-            error.name === "AbortError"
+            error?.name ===
+            "AbortError"
         ) {
 
             throw new Error(
-                "API request timed out after " +
-                `${API_CONFIG.REQUEST_TIMEOUT / 1000} seconds.`
+                "The request took too long to complete. Please try again."
             );
 
         }
 
 
-        throw error;
+        const message =
+            String(
+                error?.message ||
+                ""
+            ).trim();
+
+
+        /*
+         * ---------------------------------------------------------
+         * PRESERVE OUR OWN USER-FACING ERRORS
+         * ---------------------------------------------------------
+         */
+
+        if (
+            message &&
+            !/HTTP\s*\d{3}/i.test(message) &&
+            !/not found/i.test(message) &&
+            !/failed to fetch/i.test(message) &&
+            !/googleusercontent/i.test(message)
+        ) {
+
+            throw error;
+
+        }
+
+
+        throw new Error(
+            "The service is temporarily unavailable. Please try again."
+        );
 
     } finally {
 
@@ -329,7 +556,10 @@ function getFormattedCurrentDate() {
    7. BUSINESS REPORT EXTRACTION
    ========================================================================= */
 
-async function extractData() {
+async function extractData(options = {}) {
+
+    const parserOnly =
+        options.parserOnly === true;
 
     const reportInput = $("reportInput");
 
@@ -1255,24 +1485,54 @@ async function extractData() {
 
 
         /* ---------------- DATACORE HAND-OFF ---------------- */
-        try {
 
-            await syncParserMetadataToDataCoreEnv(
-                appState.extractedMarketName,
-                appState.extractedReportDate,
-                text
-            );
+        if (!parserOnly) {
 
-            window.dispatchEvent(
-                new CustomEvent("lendingops:extraction-complete")
-            );
+            try {
 
-        } catch (error) {
-            console.error(
-                "DataCore sync error:",
-                error
+                await syncParserMetadataToDataCoreEnv(
+                    appState.extractedMarketName,
+                    appState.extractedReportDate,
+                    text
+                );
+
+                window.dispatchEvent(
+                    new CustomEvent(
+                        "lendingops:extraction-complete"
+                    )
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "DataCore sync error:",
+                    error
+                );
+
+                throw error;
+            }
+
+        } else {
+
+            /*
+            * -------------------------------------------------------
+            * BUSINESS PARSER REFRESH ONLY
+            * -------------------------------------------------------
+            *
+            * Do NOT:
+            *
+            * - sync metadata to DataCore
+            * - trigger extraction-complete
+            * - restart Disbursement Core
+            * - reload DataCore customers
+            *
+            * The Parser is refreshed independently.
+            * -------------------------------------------------------
+            */
+
+            console.log(
+                "Business Parser refreshed without DataCore handoff."
             );
-            throw error;
         }
 
     } else {
@@ -1313,6 +1573,127 @@ async function extractData() {
         if (errorBox) {
             errorBox.classList.add("hidden");
         }
+    }
+}
+
+/* =========================================================================
+   BUSINESS PARSER REFRESH
+   ========================================================================= */
+
+async function refreshBusinessParser() {
+
+    const button =
+        $("refresh-business-parser-btn");
+
+    if (!button) {
+        return;
+    }
+
+
+    /*
+     * Prevent repeated refresh requests.
+     */
+
+    if (
+        button.dataset.refreshing === "true"
+    ) {
+        return;
+    }
+
+
+    button.dataset.refreshing =
+        "true";
+
+    button.disabled =
+        true;
+
+    const originalText =
+        button.textContent;
+
+
+    button.textContent =
+        "Refreshing...";
+
+
+    try {
+
+        /*
+         * ---------------------------------------------------------
+         * IMPORTANT
+         *
+         * parserOnly = true means:
+         *
+         * - reread reportInput
+         * - rerun Business Parser extraction
+         * - rerun historical lookup
+         * - rebuild audit state
+         *
+         * BUT:
+         *
+         * - do not sync DataCore
+         * - do not trigger extraction-complete
+         * - do not restart Disbursement Core
+         * ---------------------------------------------------------
+         */
+
+        await extractData({
+            parserOnly: true
+        });
+
+
+        /*
+         * Refresh the visible Parser metadata.
+         */
+
+        setInputValue(
+            "displayDate",
+            appState.extractedReportDate
+        );
+
+
+        setInputValue(
+            "displayMarket",
+            appState.extractedMarketName
+        );
+
+
+        /*
+         * Make sure the user knows the refresh completed.
+         */
+
+        console.log(
+            "Business Parser refreshed successfully."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Business Parser refresh failed:",
+            error
+        );
+
+        alert(
+            "⚠️ Business Parser refresh failed.\n\n" +
+            (
+                error?.message ||
+                "Unable to refresh the Parser."
+            )
+        );
+
+
+    } finally {
+
+        button.dataset.refreshing =
+            "false";
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            originalText ||
+            "↻ Refresh";
+
     }
 }
 
@@ -2069,17 +2450,27 @@ async function runCalculation() {
 
         } catch (error) {
 
+            /*
+            * ---------------------------------------------------------------
+            * HISTORICAL VALIDATION IS NON-BLOCKING
+            * ---------------------------------------------------------------
+            *
+            * Keep the technical error in the browser console for debugging.
+            *
+            * However, a historical lookup failure must NOT prevent the
+            * current report from being calculated.
+            */
+
             console.error(
                 "Historical validation failed:",
                 error
             );
 
             alert(
-                "⚠️ Historical validation could not be completed.\n\n" +
-                error.message
+                "⚠️ Historical comparison data could not be loaded.\n\n" +
+                "Current report calculation will continue."
             );
 
-            return;
         }
 
 
@@ -2720,20 +3111,45 @@ async function syncParserMetadataToDataCoreEnv(
 
 
     /*
-     * ---------------------------------------------------------------
-     * CREATE A NEW LOAD VERSION
-     * ---------------------------------------------------------------
-     *
-     * Prevent an older request from becoming authoritative if the
-     * user extracts another report while the previous request is
-     * still running.
-     * ---------------------------------------------------------------
-     */
+    * ---------------------------------------------------------------
+    * CANCEL PREVIOUS DATACORE CUSTOMER LOAD
+    * ---------------------------------------------------------------
+    *
+    * A previous customer request may still be running when:
+    *
+    * - another report is extracted
+    * - DataCore Refresh is clicked
+    * - the workspace is reused
+    *
+    * The version counter prevents stale results from becoming
+    * authoritative, but it does NOT cancel the old HTTP request.
+    *
+    * Cancel that previous request before starting a new one.
+    * ---------------------------------------------------------------
+    */
+
+    if (
+        dataCoreCustomerLoadController
+    ) {
+
+        dataCoreCustomerLoadController.abort();
+
+    }
+
+
+    /*
+    * Create the controller for this new load.
+    */
+
+    dataCoreCustomerLoadController =
+        new AbortController();
+
 
     const loadVersion =
         ++dataCoreCustomerLoadVersion;
 
-    dataCoreCustomerLoadStarted = true;
+    dataCoreCustomerLoadStarted =
+        true;
 
 
     const refreshButton =
@@ -2757,52 +3173,85 @@ async function syncParserMetadataToDataCoreEnv(
      */
 
     dataCoreCustomerLoadPromise =
-        fetchActiveMarketRowsFromSheets()
-            .then(
-                function(records) {
+    fetchActiveMarketRowsFromSheets()
+        .then(
+            function(records) {
 
-                    /*
-                     * If another report was started while this request
-                     * was running, this result is stale.
-                     */
+                /*
+                 * If another report was started while this request
+                 * was running, this result is stale.
+                 */
 
-                    if (
-                        loadVersion !==
-                        dataCoreCustomerLoadVersion
-                    ) {
+                if (
+                    loadVersion !==
+                    dataCoreCustomerLoadVersion
+                ) {
 
-                        return [];
-
-                    }
-
-
-                    setText(
-                        "datacore-status-subtext",
-                        `DataCore ready — ${market} — ${date}`
-                    );
-
-
-                    return Array.isArray(records)
-                        ? records
-                        : appState.dataCore.loadedRecords;
+                    return [];
 
                 }
-            )
-            .catch(
-                function(error) {
 
-                    /*
-                     * The original function already renders the
-                     * DataCore loading error.
-                     *
-                     * Re-throw so callers waiting for completion
-                     * know that the load failed.
-                     */
 
-                    throw error;
+                setText(
+                    "datacore-status-subtext",
+                    `DataCore ready — ${market} — ${date}`
+                );
+
+
+                return Array.isArray(records)
+                    ? records
+                    : appState.dataCore.loadedRecords;
+
+            }
+        )
+        .catch(
+            function(error) {
+
+                /*
+                 * Abort is expected when a newer DataCore load
+                 * replaces this one.
+                 *
+                 * Do not treat that cancellation as a genuine
+                 * DataCore failure.
+                 */
+
+                if (
+                    error &&
+                    error.name === "AbortError"
+                ) {
+
+                    return [];
 
                 }
-            );
+
+
+                throw error;
+
+            }
+        )
+        .finally(
+            function() {
+
+                /*
+                 * Only clear the controller if this is still
+                 * the current load.
+                 *
+                 * An older request must never clear the controller
+                 * belonging to a newer request.
+                 */
+
+                if (
+                    loadVersion ===
+                    dataCoreCustomerLoadVersion
+                ) {
+
+                    dataCoreCustomerLoadController =
+                        null;
+
+                }
+
+            }
+        );
 
 
     return dataCoreCustomerLoadPromise;
@@ -3304,6 +3753,69 @@ function finishDataCorePerformanceTimer(
 }
 
 
+async function fetchDataCoreCustomers(url) {
+
+    const controller =
+        dataCoreCustomerLoadController;
+
+
+    try {
+
+        const result =
+            await apiRequest(
+                url,
+                {
+                    method: "GET",
+
+                    signal:
+                        controller
+                            ? controller.signal
+                            : undefined
+                }
+            );
+
+
+        if (!result) {
+
+            throw new Error(
+                "Business Parser customer request returned an empty response, Kindly Refresh."
+            );
+
+        }
+
+
+        return result;
+
+
+    } catch (error) {
+
+        /*
+         * Preserve cancellation behavior.
+         * If the customer load was intentionally aborted,
+         * allow the AbortError to propagate.
+         */
+        if (
+            error?.name === "AbortError"
+        ) {
+
+            throw error;
+
+        }
+
+
+        /*
+         * Keep the customer-specific user-facing
+         * message instead of exposing transport details.
+         */
+        throw new Error(
+            "Business Parser customer request failed, Kindly Refresh."
+        );
+
+    }
+
+}
+
+
 /* =========================================================================
    14. FETCH DATACORE MARKET RECORDS
    ========================================================================= */
@@ -3416,7 +3928,7 @@ async function fetchActiveMarketRowsFromSheets() {
     try {
 
         const result =
-            await apiRequest(url);
+            await fetchDataCoreCustomers(url);
 
 
         /*console.log(
@@ -5072,7 +5584,6 @@ function renderDynamicDataCoreLedger() {
 
                 if (
                     isPayoffRecipient &&
-                    isSettledLoan &&
                     !isFutureLoan &&
                     !isDisbursedToday &&
                     payoffLookup[normName]
@@ -7893,10 +8404,30 @@ function clearWorkspace() {
         postConfirmed: false
     };
 
-    dataCoreCustomerLoadStarted = false;
+    /*
+    * ---------------------------------------------------------------
+    * CANCEL ACTIVE DATACORE CUSTOMER LOAD
+    * ---------------------------------------------------------------
+    */
 
-    dataCoreCustomerLoadPromise = null;
-    
+    if (
+        dataCoreCustomerLoadController
+    ) {
+
+        dataCoreCustomerLoadController.abort();
+
+    }
+
+
+    dataCoreCustomerLoadController =
+        null;
+
+    dataCoreCustomerLoadStarted =
+        false;
+
+    dataCoreCustomerLoadPromise =
+        null;
+
     dataCoreCustomerLoadVersion++;
 
 
@@ -8115,19 +8646,18 @@ function addActionButtonClickEffect(
                         "action-button-active"
                     );
 
-
                     button.style.transform =
                         "";
 
-
                     /*
-                     * Only restore the text if another part of
-                     * the application has not changed it.
-                     */
+                    * Restore the original label.
+                    *
+                    * The workspace reset function can also explicitly
+                    * restore this state when the workspace is cleared.
+                    */
 
                     if (
-                        button.isConnected &&
-                        !button.disabled
+                        button.isConnected
                     ) {
 
                         button.textContent =
@@ -8183,25 +8713,107 @@ document.addEventListener(
 
 
         /*
-         * =========================================================
-         * RUN CALCULATION
-         * =========================================================
-         */
+        * =========================================================
+        * RUN CALCULATION
+        * =========================================================
+        */
 
         const calculateButton =
             $("calculateBtn");
 
-        calculateButton
-            ?.addEventListener(
-                "click",
-                runCalculation
-            );
+
+        calculateButton?.addEventListener(
+            "click",
+            async function () {
+
+                /*
+                * Prevent double-clicking while the calculation
+                * is already running.
+                */
+
+                if (
+                    calculateButton.dataset.calculating ===
+                    "true"
+                ) {
+                    return;
+                }
 
 
-        addActionButtonClickEffect(
-            calculateButton,
-            "Run Calculation",
-            "Calculating..."
+                /*
+                * -----------------------------------------------------
+                * ENTER CALCULATING STATE
+                * -----------------------------------------------------
+                */
+
+                calculateButton.dataset.calculating =
+                    "true";
+
+                calculateButton.disabled =
+                    true;
+
+                calculateButton.textContent =
+                    "Calculating...";
+
+
+                try {
+
+                    /*
+                    * -------------------------------------------------
+                    * IMPORTANT
+                    *
+                    * Wait for the ENTIRE runCalculation()
+                    * process to finish.
+                    *
+                    * This includes:
+                    *
+                    * - calculations
+                    * - validation
+                    * - existing-record checks
+                    * - server POST
+                    * - server confirmation
+                    * - success popup
+                    *
+                    * The button remains "Calculating..."
+                    * throughout this process.
+                    * -------------------------------------------------
+                    */
+
+                    await runCalculation();
+
+
+                } catch (error) {
+
+                    /*
+                    * Keep the existing error handling behavior
+                    * of runCalculation().
+                    */
+
+                    console.error(
+                        "Run Calculation error:",
+                        error
+                    );
+
+
+                } finally {
+
+                    /*
+                    * -------------------------------------------------
+                    * RETURN TO NORMAL BUTTON STATE
+                    * -------------------------------------------------
+                    */
+
+                    calculateButton.dataset.calculating =
+                        "false";
+
+                    calculateButton.disabled =
+                        false;
+
+                    calculateButton.textContent =
+                        CALCULATE_BUTTON_DEFAULT_TEXT;
+
+                }
+
+            }
         );
 
 
@@ -8340,6 +8952,20 @@ document.addEventListener(
                     event.preventDefault();
                 }
             }
+        );
+
+        /*
+        * =========================================================
+        * BUSINESS PARSER REFRESH
+        * =========================================================
+        */
+
+        const refreshBusinessParserButton =
+            $("refresh-business-parser-btn");
+
+        refreshBusinessParserButton?.addEventListener(
+            "click",
+            refreshBusinessParser
         );
 
     }

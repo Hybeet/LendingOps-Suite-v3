@@ -1231,6 +1231,20 @@
         disbursementSection
     ) {
 
+        disbursementState.marketName =
+            String(
+                disbursementState.marketName ||
+                appState.extractedMarketName ||
+                ""
+            ).trim();
+
+        disbursementState.reportDate =
+            String(
+                disbursementState.reportDate ||
+                appState.extractedReportDate ||
+                ""
+            ).trim();
+
         const market =
             String(
                 disbursementState.marketName || ""
@@ -1339,31 +1353,69 @@
         * =============================================================
         * BROWSER → BUSINESS PARSER
         * =============================================================
-        */
+        
+
+        console.log(
+            "========== DISBURSEMENT ENRICH REQUEST =========="
+        );
+
+        console.log(
+            "Business Parser URL:",
+            url.toString()
+        );
+
+        console.log(
+            "Market:",
+            market
+        );
+
+        console.log(
+            "Report Date:",
+            reportDate
+        );
+
+        console.log(
+            "=================================================="
+        );*/
 
         const response =
             await fetch(
                 url.toString(),
                 {
-
-                    method:
-                        "GET",
-
-                    cache:
-                        "no-store",
-
-                    credentials:
-                        "omit"
-
+                    method: "GET",
+                    cache: "no-store",
+                    credentials: "omit"
                 }
             );
+
+        /*console.log(
+            "Disbursement Enrich HTTP Status:",
+            response.status
+        );
+
+        console.log(
+            "Disbursement Enrich Response URL:",
+            response.url
+        );
+
+        console.log(
+            "Disbursement Enrich Response OK:",
+            response.ok
+        );*/
 
 
         if (!response.ok) {
 
+            console.error(
+                "Disbursement Preview request failed:",
+                {
+                    status: response.status,
+                    url: response.url
+                }
+            );
+
             throw new Error(
-                "Disbursement Preview request failed. HTTP " +
-                response.status
+                "Unable to load the disbursement preview. Please try again."
             );
 
         }
@@ -1485,7 +1537,7 @@
         if (!market) {
 
             throw new Error(
-                "Disbursement Enrichment: Market is missing."
+                "Disbursement market information is missing."
             );
 
         }
@@ -1494,7 +1546,7 @@
         if (!reportDate) {
 
             throw new Error(
-                "Disbursement Enrichment: Report date is missing."
+                "Disbursement report date is missing."
             );
 
         }
@@ -1523,9 +1575,9 @@
         * BUSINESS PARSER GET REQUEST
         * =============================================================
         *
-        * Only the SMALL parsed Disbursement record array is sent.
+        * Only the parsed Disbursement records are sent.
         *
-        * The full report is NOT sent.
+        * The full Business Report is NOT sent.
         *
         * =============================================================
         */
@@ -1572,62 +1624,155 @@
         * =============================================================
         * BROWSER → BUSINESS PARSER
         * =============================================================
+        *
+        * IMPORTANT:
+        *
+        * Do NOT use raw fetch() here.
+        *
+        * apiRequest() is now responsible for:
+        *
+        * - Apps Script redirects
+        * - temporary 404 retry
+        * - timeout handling
+        * - response parsing
+        * - transport-error sanitization
+        *
+        * =============================================================
         */
 
-        const response =
-            await fetch(
-                url.toString(),
-                {
-
-                    method:
-                        "GET",
-
-                    cache:
-                        "no-store",
-
-                    credentials:
-                        "omit"
-
-                }
-            );
+        let result;
 
 
-        if (!response.ok) {
+        try {
 
-            throw new Error(
-                "Disbursement enrichment failed. HTTP " +
-                response.status
-            );
+            result =
+                await apiRequest(
+                    url.toString(),
+                    {
+                        method:
+                            "GET",
+
+                        cache:
+                            "no-store",
+
+                        credentials:
+                            "omit"
+                    }
+                );
+
+        } catch (error) {
+
+            /*
+            * =========================================================
+            * USER-FACING ERROR PROTECTION
+            * =========================================================
+            *
+            * Never allow HTTP status codes, Apps Script URLs,
+            * "Not Found", or fetch implementation errors to reach
+            * the interface.
+            * =========================================================
+            */
+
+            const rawMessage =
+                String(
+                    error?.message || ""
+                ).trim();
+
+
+            const isTechnicalError =
+                /HTTP\s*\d{3}/i.test(
+                    rawMessage
+                ) ||
+                /not found/i.test(
+                    rawMessage
+                ) ||
+                /failed to fetch/i.test(
+                    rawMessage
+                ) ||
+                /googleusercontent/i.test(
+                    rawMessage
+                ) ||
+                /script\.google/i.test(
+                    rawMessage
+                );
+
+
+            if (isTechnicalError) {
+
+                throw new Error(
+                    "Disbursement records could not be loaded right now. Please refresh and try again."
+                );
+
+            }
+
+
+            throw error;
 
         }
 
 
-        const result =
-            await response.json();
+        /*
+        * =============================================================
+        * VERIFY BUSINESS PARSER RESPONSE
+        * =============================================================
+        */
+
+        if (!result) {
+
+            throw new Error(
+                "No response was received while preparing the Disbursement records."
+            );
+
+        }
 
 
         if (
-            !result ||
-            result.status !== "success"
+            result.status !==
+            "success"
         ) {
 
             throw new Error(
-                result &&
-                result.message
-                    ? result.message
-                    : "DataCore Disbursement enrichment failed."
+                result.message ||
+                "The Disbursement records could not be prepared."
             );
 
         }
 
 
-        disbursementState.records =
-            Array.isArray(
+        /*
+        * =============================================================
+        * VERIFY RECORD ARRAY
+        * =============================================================
+        */
+
+        if (
+            !Array.isArray(
                 result.records
             )
-                ? result.records
-                : [];
+        ) {
 
+            throw new Error(
+                "The Disbursement service returned an invalid record set."
+            );
+
+        }
+
+
+        /*
+        * =============================================================
+        * STORE ENRICHED RECORDS
+        * =============================================================
+        */
+
+        disbursementState.records =
+            result.records;
+
+
+        /*
+        * =============================================================
+        * UPDATE PREVIEW
+        * =============================================================
+        */
 
         updateDisbursementPreviewUI();
 
@@ -2500,9 +2645,8 @@
 
         } catch (error) {
 
-            console.error(
-                "Disbursement post error:",
-                error
+            console.warn(
+                "Disbursement post rejected."
             );
 
             disbursementState.postConfirmed =

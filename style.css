@@ -1778,6 +1778,97 @@ footer button a {
     cursor: not-allowed;
 }
 
+/* =========================================================
+   VERIFY DATA HEADING
+   ========================================================= */
+
+.verify-data-title {
+    position: relative;
+
+    /*
+     * Reserve a little space so the button does not
+     * overlap the heading text.
+     */
+    padding-right: 90px;
+}
+
+
+/* =========================================================
+   BUSINESS PARSER REFRESH BUTTON
+   ========================================================= */
+
+.verify-data-title .parser-refresh-btn {
+    position: absolute;
+
+    right: 0;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    /*
+     * IMPORTANT:
+     * Override any global button width: 100%;
+     */
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: max-content !important;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    white-space: nowrap;
+
+    padding: 5px 10px;
+
+    margin: 0;
+
+    border: 1px solid #2563eb;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    color: #2563eb;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    line-height: 1.2;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.1s ease;
+}
+
+
+.verify-data-title .parser-refresh-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+
+.verify-data-title .parser-refresh-btn:active {
+    transform:
+        translateY(-50%)
+        scale(0.97);
+}
+
+
+.verify-data-title .parser-refresh-btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
 
 /* =========================================================
    MOBILE
