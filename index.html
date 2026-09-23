@@ -1444,6 +1444,85 @@
 
                     </div>
 
+                    <div
+                        id="disbursement-reconciliation-inline"
+                        class="disbursement-reconciliation-inline"
+                        aria-live="polite"
+                    >
+                        <span class="disbursement-reconciliation-item">
+                            <span class="reconciliation-label">
+                                Report Cost of Deals:
+                            </span>
+
+                            <strong
+                                id="disbursement-report-cost"
+                                class="reconciliation-value"
+                            >
+                                ₦0.00
+                            </strong>
+                        </span>
+
+                        <span
+                            class="disbursement-reconciliation-separator"
+                            aria-hidden="true"
+                        >
+                            |
+                        </span>
+
+                        <span class="disbursement-reconciliation-item">
+                            <span class="reconciliation-label">
+                                Total Disbursement Principal:
+                            </span>
+
+                            <strong
+                                id="disbursement-total-principal"
+                                class="reconciliation-value"
+                            >
+                                ₦0.00
+                            </strong>
+                        </span>
+
+                        <span
+                            class="disbursement-reconciliation-separator"
+                            aria-hidden="true"
+                        >
+                            |
+                        </span>
+
+                        <span class="disbursement-reconciliation-item">
+                            <span class="reconciliation-label">
+                                Variance:
+                            </span>
+
+                            <strong
+                                id="disbursement-variance"
+                                class="reconciliation-value"
+                            >
+                                ₦0.00
+                            </strong>
+                        </span>
+
+                        <span
+                            class="disbursement-reconciliation-separator"
+                            aria-hidden="true"
+                        >
+                            |
+                        </span>
+
+                        <span class="disbursement-reconciliation-item">
+                            <span class="reconciliation-label">
+                                Reconciliation:
+                            </span>
+
+                            <strong
+                                id="disbursement-reconciliation-status"
+                                class="disbursement-reconciliation-status is-waiting"
+                            >
+                                WAITING
+                            </strong>
+                        </span>
+                    </div>
+
 
                     <div class="disbursement-core-status">
 
@@ -1612,8 +1691,12 @@
                 <div class="datacore-header">
                     <div>
                         <h3>🎛️ Field Registry Reconciliation DataCore</h3>
-                        <p id="datacore-status-subtext" class="status-subtext">Waiting for market data extraction step from the report module above...</p>
+
+                        <p id="datacore-status-subtext" class="status-subtext">
+                            Waiting for market data extraction step from the report module above...
+                        </p>
                     </div>
+
                     <div class="datacore-header-actions">
 
                         <button
@@ -1684,6 +1767,7 @@
     </div>
     <script src="script.js"></script>
     <script src="script2.js"></script>
+    <script src="datacore-search.js"></script>
     <script src="theme.js"></script>
 </body>
 </html>

@@ -19,6 +19,7 @@ let dataCoreCustomerLoadPromise = null;
 let dataCoreCustomerLoadVersion = 0;
 let dataCoreCustomerLoadStarted = false;
 let dataCoreCustomerLoadController = null;
+let extractionInProgress = false;
 
 
 const API_CONFIG = Object.freeze({
@@ -79,6 +80,25 @@ const appState = {
     }
 };
 
+/*
+ * ---------------------------------------------------------------
+ * RESET DISBURSEMENT CORE
+ * ---------------------------------------------------------------
+ *
+ * DataCore and Disbursement Core maintain separate state.
+ * Clearing the workspace must reset both.
+ * ---------------------------------------------------------------
+ */
+
+if (
+    typeof resetDisbursementCore ===
+    "function"
+) {
+
+    resetDisbursementCore();
+
+}
+
 const CALCULATE_BUTTON_DEFAULT_TEXT =
     "Step 2: Run Calculation & Sync Ledger";
 
@@ -134,23 +154,169 @@ function escapeRegExp(string) {
    4. SECURE NETWORK REQUEST HELPER
    ========================================================================= */
 
-async function apiRequest(url, options = {}) {
+async function apiRequest(
+    url,
+    options = {}
+) {
 
-    const controller =
-        options.signal
-            ? null
-            : new AbortController();
+    const requestURL =
+        String(
+            url || ""
+        ).trim();
+
+
+    if (!requestURL) {
+
+        throw new Error(
+            "The requested service is not available."
+        );
+
+    }
+
+
+    /*
+     * =========================================================
+     * REQUEST METHOD
+     * =========================================================
+     *
+     * GET / HEAD:
+     *     safe to retry
+     *
+     * POST / PUT / PATCH / DELETE:
+     *     NEVER automatically retry
+     * =========================================================
+     */
+
+    const requestMethod =
+        String(
+            options.method ||
+            "GET"
+        ).toUpperCase();
+
+
+    const retryableMethod =
+        requestMethod === "GET" ||
+        requestMethod === "HEAD";
+
+
+    /*
+     * ---------------------------------------------------------
+     * MAX ATTEMPTS
+     * ---------------------------------------------------------
+     *
+     * GET / HEAD:
+     *     maximum 3 attempts
+     *
+     * This is specifically to tolerate transient Google
+     * Apps Script / browser connection closures.
+     *
+     * Write requests remain exactly one attempt.
+     * ---------------------------------------------------------
+     */
+
+    const maxAttempts =
+        retryableMethod
+            ? 3
+            : 1;
+
+
+    /*
+     * =========================================================
+     * REQUEST CONTROLLERS
+     * =========================================================
+     *
+     * Always create our own controller so the timeout works
+     * even when the caller supplies an AbortSignal.
+     *
+     * The caller's signal is still respected.
+     * =========================================================
+     */
+
+    const timeoutController =
+        new AbortController();
+
+
+    const externalSignal =
+        options.signal || null;
+
+
+    /*
+     * ---------------------------------------------------------
+     * FORWARD EXTERNAL ABORT
+     * ---------------------------------------------------------
+     *
+     * If the DataCore load is intentionally cancelled because
+     * a new refresh/load has started, abort this request too.
+     * ---------------------------------------------------------
+     */
+
+    let externalAbortHandler =
+        null;
+
+
+    if (externalSignal) {
+
+        externalAbortHandler =
+            () => {
+
+                if (
+                    !timeoutController.signal.aborted
+                ) {
+
+                    timeoutController.abort();
+
+                }
+
+            };
+
+
+        if (
+            externalSignal.aborted
+        ) {
+
+            externalAbortHandler();
+
+        } else {
+
+            externalSignal.addEventListener(
+                "abort",
+                externalAbortHandler,
+                {
+                    once: true
+                }
+            );
+
+        }
+
+    }
+
 
     const requestSignal =
-        options.signal ||
-        controller.signal;
+        timeoutController.signal;
+
+
+    /*
+     * ---------------------------------------------------------
+     * GLOBAL REQUEST TIMEOUT
+     * ---------------------------------------------------------
+     *
+     * Preserve the existing API_CONFIG timeout.
+     *
+     * The important difference is that it now also works when
+     * an external DataCore signal is supplied.
+     * ---------------------------------------------------------
+     */
 
     const timeout =
         setTimeout(
             () => {
 
-                if (controller) {
-                    controller.abort();
+                if (
+                    !timeoutController.signal.aborted
+                ) {
+
+                    timeoutController.abort();
+
                 }
 
             },
@@ -158,66 +324,17 @@ async function apiRequest(url, options = {}) {
         );
 
 
+    let response =
+        null;
+
+
     try {
 
-        const requestURL =
-            String(
-                url || ""
-            ).trim();
-
-
-        if (!requestURL) {
-
-            throw new Error(
-                "The requested service is not available."
-            );
-
-        }
-
-
         /*
-         * =========================================================
-         * REQUEST METHOD
-         * =========================================================
-         *
-         * IMPORTANT:
-         *
-         * GET / HEAD requests may safely retry.
-         *
-         * POST / PUT / PATCH / DELETE requests MUST NOT
-         * automatically retry because they may perform writes.
-         * =========================================================
+         * =====================================================
+         * REQUEST LOOP
+         * =====================================================
          */
-
-        const requestMethod =
-            String(
-                options.method ||
-                "GET"
-            ).toUpperCase();
-
-
-        const retryableMethod =
-            requestMethod === "GET" ||
-            requestMethod === "HEAD";
-
-
-        /*
-         * GET / HEAD:
-         *     maximum 2 attempts
-         *
-         * POST / PUT / PATCH / DELETE:
-         *     exactly 1 attempt
-         */
-
-        const maxAttempts =
-            retryableMethod
-                ? 2
-                : 1;
-
-
-        let response =
-            null;
-
 
         for (
             let attempt = 1;
@@ -230,16 +347,12 @@ async function apiRequest(url, options = {}) {
 
 
             /*
-             * -----------------------------------------------------
-             * CACHE-BUSTER
-             * -----------------------------------------------------
+             * -------------------------------------------------
+             * CACHE BUSTER
+             * -------------------------------------------------
              *
-             * ONLY used for the second attempt of a retryable
-             * request.
-             *
-             * POST requests can NEVER reach this block because
-             * maxAttempts = 1 for POST.
-             * -----------------------------------------------------
+             * Only retry attempts receive a cache buster.
+             * -------------------------------------------------
              */
 
             if (
@@ -257,6 +370,12 @@ async function apiRequest(url, options = {}) {
 
             }
 
+
+            /*
+             * =================================================
+             * FETCH
+             * =================================================
+             */
 
             try {
 
@@ -285,16 +404,15 @@ async function apiRequest(url, options = {}) {
                 fetchError
             ) {
 
-
                 /*
                  * -------------------------------------------------
-                 * TIMEOUT
+                 * INTENTIONAL EXTERNAL CANCELLATION
                  * -------------------------------------------------
                  */
 
                 if (
-                    fetchError?.name ===
-                    "AbortError"
+                    externalSignal &&
+                    externalSignal.aborted
                 ) {
 
                     throw fetchError;
@@ -304,15 +422,39 @@ async function apiRequest(url, options = {}) {
 
                 /*
                  * -------------------------------------------------
-                 * RETRY NETWORK FAILURE
+                 * REQUEST TIMEOUT
+                 * -------------------------------------------------
+                 */
+
+                if (
+                    timeoutController.signal.aborted
+                ) {
+
+                    throw new Error(
+                        "The request took too long to complete. Please try again."
+                    );
+
+                }
+
+
+                /*
+                 * -------------------------------------------------
+                 * TRANSIENT NETWORK FAILURE
+                 * -------------------------------------------------
                  *
-                 * ONLY GET / HEAD can retry.
+                 * Examples include:
+                 *
+                 *     ERR_CONNECTION_CLOSED
+                 *     Failed to fetch
+                 *     network connection reset
+                 *
+                 * GET / HEAD only.
                  * -------------------------------------------------
                  */
 
                 if (
                     retryableMethod &&
-                    attempt === 1
+                    attempt < maxAttempts
                 ) {
 
                     continue;
@@ -328,9 +470,9 @@ async function apiRequest(url, options = {}) {
 
 
             /*
-             * -----------------------------------------------------
-             * SUCCESS
-             * -----------------------------------------------------
+             * =================================================
+             * HTTP SUCCESS
+             * =================================================
              */
 
             if (
@@ -338,24 +480,176 @@ async function apiRequest(url, options = {}) {
                 response.ok
             ) {
 
-                break;
+                /*
+                 * -------------------------------------------------
+                 * READ RESPONSE BODY INSIDE RETRY LOOP
+                 * -------------------------------------------------
+                 *
+                 * This is important.
+                 *
+                 * If the connection closes while the body is
+                 * being consumed, the GET can still retry.
+                 * -------------------------------------------------
+                 */
+
+                let responseText;
+
+
+                try {
+
+                    responseText =
+                        await response.text();
+
+
+                } catch (
+                    bodyError
+                ) {
+
+                    /*
+                     * Intentional cancellation.
+                     */
+
+                    if (
+                        externalSignal &&
+                        externalSignal.aborted
+                    ) {
+
+                        throw bodyError;
+
+                    }
+
+
+                    /*
+                     * Timeout.
+                     */
+
+                    if (
+                        timeoutController.signal.aborted
+                    ) {
+
+                        throw new Error(
+                            "The request took too long to complete. Please try again."
+                        );
+
+                    }
+
+
+                    /*
+                     * Transient response-body failure.
+                     *
+                     * GET / HEAD may retry.
+                     */
+
+                    if (
+                        retryableMethod &&
+                        attempt < maxAttempts
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    throw new Error(
+                        "The server could not complete the response."
+                    );
+
+                }
+
+
+                /*
+                 * -------------------------------------------------
+                 * EMPTY RESPONSE
+                 * -------------------------------------------------
+                 */
+
+                if (
+                    !responseText ||
+                    !responseText.trim()
+                ) {
+
+                    if (
+                        retryableMethod &&
+                        attempt < maxAttempts
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    throw new Error(
+                        "The server returned an empty response."
+                    );
+
+                }
+
+
+                /*
+                 * -------------------------------------------------
+                 * JSON PARSE
+                 * -------------------------------------------------
+                 */
+
+                let result;
+
+
+                try {
+
+                    result =
+                        JSON.parse(
+                            responseText
+                        );
+
+
+                } catch {
+
+                    /*
+                     * A malformed JSON response should NOT be
+                     * retried indefinitely.
+                     */
+
+                    throw new Error(
+                        "The server returned an invalid response."
+                    );
+
+                }
+
+
+                return result;
 
             }
 
 
             /*
-             * -----------------------------------------------------
-             * RETRY HTTP 404
+             * =================================================
+             * TRANSIENT HTTP FAILURE
+             * =================================================
              *
-             * ONLY GET / HEAD can retry.
-             * -----------------------------------------------------
+             * These statuses can occur temporarily on a
+             * server-side service.
+             *
+             * GET / HEAD only.
+             * =================================================
              */
+
+            const retryableStatus =
+                response &&
+                (
+                    response.status === 404 ||
+                    response.status === 408 ||
+                    response.status === 429 ||
+                    response.status === 500 ||
+                    response.status === 502 ||
+                    response.status === 503 ||
+                    response.status === 504
+                );
+
 
             if (
                 retryableMethod &&
-                response &&
-                response.status === 404 &&
-                attempt === 1
+                retryableStatus &&
+                attempt < maxAttempts
             ) {
 
                 continue;
@@ -364,9 +658,9 @@ async function apiRequest(url, options = {}) {
 
 
             /*
-             * -----------------------------------------------------
+             * -------------------------------------------------
              * ALL OTHER HTTP FAILURES
-             * -----------------------------------------------------
+             * -------------------------------------------------
              */
 
             throw new Error(
@@ -377,63 +671,53 @@ async function apiRequest(url, options = {}) {
 
 
         /*
-         * ---------------------------------------------------------
-         * FINAL RESPONSE VALIDATION
-         * ---------------------------------------------------------
+         * -----------------------------------------------------
+         * SHOULD NEVER BE REACHED
+         * -----------------------------------------------------
          */
 
-        if (
-            !response ||
-            !response.ok
-        ) {
-
-            throw new Error(
-                "The server could not complete the request."
-            );
-
-        }
-
-
-        const responseText =
-            await response.text();
-
-
-        if (
-            !responseText.trim()
-        ) {
-
-            throw new Error(
-                "The server returned an empty response."
-            );
-
-        }
-
-
-        let result;
-
-
-        try {
-
-            result =
-                JSON.parse(
-                    responseText
-                );
-
-        } catch {
-
-            throw new Error(
-                "The server returned an invalid response."
-            );
-
-        }
-
-
-        return result;
+        throw new Error(
+            "The server could not complete the request."
+        );
 
 
     } catch (
         error
     ) {
+
+        /*
+         * ---------------------------------------------------------
+         * EXTERNAL CANCELLATION
+         * ---------------------------------------------------------
+         *
+         * Preserve AbortError so fetchDataCoreCustomers() can
+         * recognize intentional cancellation.
+         * ---------------------------------------------------------
+         */
+
+        if (
+            externalSignal &&
+            externalSignal.aborted
+        ) {
+
+            if (
+                error?.name ===
+                "AbortError"
+            ) {
+
+                throw error;
+
+            }
+
+            const abortError =
+                new DOMException(
+                    "The request was aborted.",
+                    "AbortError"
+                );
+
+            throw abortError;
+
+        }
 
 
         /*
@@ -443,8 +727,7 @@ async function apiRequest(url, options = {}) {
          */
 
         if (
-            error?.name ===
-            "AbortError"
+            timeoutController.signal.aborted
         ) {
 
             throw new Error(
@@ -490,10 +773,28 @@ async function apiRequest(url, options = {}) {
             timeout
         );
 
+
+        /*
+         * ---------------------------------------------------------
+         * REMOVE EXTERNAL ABORT LISTENER
+         * ---------------------------------------------------------
+         */
+
+        if (
+            externalSignal &&
+            externalAbortHandler
+        ) {
+
+            externalSignal.removeEventListener(
+                "abort",
+                externalAbortHandler
+            );
+
+        }
+
     }
 
 }
-
 
 /* =========================================================================
    5. TEXT NORMALIZATION
@@ -556,7 +857,7 @@ function getFormattedCurrentDate() {
    7. BUSINESS REPORT EXTRACTION
    ========================================================================= */
 
-async function extractData(options = {}) {
+async function extractDataInternal(options = {}) {
 
     const parserOnly =
         options.parserOnly === true;
@@ -651,10 +952,49 @@ async function extractData(options = {}) {
 
     /* ---------------- MARKET ---------------- */
 
-    const marketRegex =
-        /(?:Marke[a-z]*|Locat[a-z]*)[^*:\n]*[*:]*\s*([A-Za-z0-9\s._-]+)/i;
+    /*
+    * ===============================================================
+    * MARKET / LOCATION EXTRACTION
+    * ===============================================================
+    *
+    * The "*" character is ONLY formatting.
+    *
+    * It is NOT required before:
+    *
+    *     Market/Location
+    *
+    * and it is NOT required after:
+    *
+    *     :
+    *     =
+    *
+    * Supported:
+    *
+    *     *Market/Location:* Kure
+    *     Market/Location: Kure
+    *     *Market/Location: Kure
+    *     Market/Location:* Kure
+    *     *Market/Location=* Kure
+    *     Market/Location = Kure
+    *
+    * Also supports:
+    *
+    *     *Market:* Kure
+    *     *Market Name:* Kure
+    *     *Location:* Kure
+    *
+    * The value is restricted to the same line so it can NEVER
+    * consume the following Date line.
+    * ===============================================================
+    */
 
-    const marketMatch = text.match(marketRegex);
+    const marketRegex =
+        /(?:^|\r?\n)\s*\*?\s*(?:Market\s*\/\s*Location|Market\s+Name|Market|Location)\s*\*?\s*[:=]\s*\*?\s*([A-Za-z0-9][A-Za-z0-9\s._-]*?)\s*\*?\s*(?=\r?\n|$)/im;
+
+    const marketMatch =
+        text.match(
+            marketRegex
+        );
 
 
     /* ---------------- NUMERIC EXTRACTION ---------------- */
@@ -769,6 +1109,33 @@ async function extractData(options = {}) {
     setInputValue(
         "calcCell3",
         computedNewDealInstallment.toFixed(2)
+    );
+
+    /* ===============================================================
+    * INTEREST OF DEALS
+    *
+    * AUTHORITATIVE RULE:
+    *
+    * Interest of Deals = Cost of Deals / 10
+    *
+    * The raw report Interest value is deliberately ignored.
+    *
+    * Cost of Deals is the source value.
+    * =============================================================== */
+
+    const extractedCostOfDeals =
+        Number(
+            $("costOfDeals")?.value
+        ) || 0;
+
+
+    const calculatedInterestOnDeals =
+        extractedCostOfDeals / 10;
+
+
+    setInputValue(
+        "interestOnDeals",
+        calculatedInterestOnDeals
     );
 
 
@@ -1574,6 +1941,44 @@ async function extractData(options = {}) {
             errorBox.classList.add("hidden");
         }
     }
+}
+
+async function extractData(
+    options = {}
+) {
+
+    /*
+     * ---------------------------------------------------------------
+     * PREVENT CONCURRENT EXTRACTION
+     * ---------------------------------------------------------------
+     */
+
+    if (
+        extractionInProgress
+    ) {
+
+        return;
+
+    }
+
+
+    extractionInProgress =
+        true;
+
+
+    try {
+
+        return await extractDataInternal(
+            options
+        );
+
+    } finally {
+
+        extractionInProgress =
+            false;
+
+    }
+
 }
 
 /* =========================================================================
@@ -3710,6 +4115,12 @@ function refreshDataCoreTargetBenchmark(
 
 
     calculateDataCoreLedgerMatrix();
+
+    document.dispatchEvent(
+        new CustomEvent(
+            "lendingops:datacore-rendered"
+        )
+    );
 }
 
 
@@ -3753,7 +4164,9 @@ function finishDataCorePerformanceTimer(
 }
 
 
-async function fetchDataCoreCustomers(url) {
+async function fetchDataCoreCustomers(
+    url
+) {
 
     const controller =
         dataCoreCustomerLoadController;
@@ -3765,7 +4178,8 @@ async function fetchDataCoreCustomers(url) {
             await apiRequest(
                 url,
                 {
-                    method: "GET",
+                    method:
+                        "GET",
 
                     signal:
                         controller
@@ -3787,15 +4201,19 @@ async function fetchDataCoreCustomers(url) {
         return result;
 
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         /*
-         * Preserve cancellation behavior.
-         * If the customer load was intentionally aborted,
-         * allow the AbortError to propagate.
+         * ---------------------------------------------------------
+         * PRESERVE INTENTIONAL CANCELLATION
+         * ---------------------------------------------------------
          */
+
         if (
-            error?.name === "AbortError"
+            error?.name ===
+            "AbortError"
         ) {
 
             throw error;
@@ -3804,9 +4222,11 @@ async function fetchDataCoreCustomers(url) {
 
 
         /*
-         * Keep the customer-specific user-facing
-         * message instead of exposing transport details.
+         * ---------------------------------------------------------
+         * CUSTOMER-SPECIFIC USER MESSAGE
+         * ---------------------------------------------------------
          */
+
         throw new Error(
             "Business Parser customer request failed, Kindly Refresh."
         );
@@ -4009,7 +4429,13 @@ async function fetchActiveMarketRowsFromSheets() {
 
         appState.dataCore.loadedRecords =
             [];
+        
+        const dataCoreStatusSubtext = document.getElementById("datacore-status-subtext");
 
+        if (dataCoreStatusSubtext) {
+            dataCoreStatusSubtext.textContent =
+                "DataCore loaded. Awaiting disbursement identity reconciliation...";
+        }
 
         if (gridBody) {
 
@@ -4051,6 +4477,7 @@ async function fetchActiveMarketRowsFromSheets() {
             " ms"
         );*/
     }
+    
 }
 
 
@@ -4114,7 +4541,7 @@ function renderDynamicDataCoreLedger() {
 
     const recoveryBlock =
         text.match(
-            /\*\s*Recovery\s+with\s+phone\s*=\s*([\s\S]*?)(?=\*\s*(?:Disbursement|Previous\s+Pay\s+Down|Pay\s+down\s+with\s+phone|Used\s+pay\s+down\s+with\s+phone|Pay\s*off|Default\s+with\s+phone|Record\s+of\s+Form)|$)/i
+            /\*\s*Recovery\s+with\s+phone\s*=\s*([\s\S]*?)(?=\r?\n\s*(?:\*\s*)?Disbursement\b|\r?\n\s*\*\s*(?:Previous\s+Pay\s+Down|Pay\s+down\s+with\s+phone|Used\s+pay\s+down\s+with\s+phone|Pay\s*off|Default\s+with\s+phone|Record\s+of\s+Form)|$)/i
         );
 
 
@@ -4163,6 +4590,28 @@ function renderDynamicDataCoreLedger() {
 
 
     const lastRowIndexMap = {};
+
+    /* ===============================================================
+    * TODAY'S NEW LOAN IDENTITY
+    *
+    * Source:
+    * Disbursement Core enriched records.
+    *
+    * IMPORTANT:
+    * DataCore loadedRecords may have been loaded BEFORE today's
+    * disbursement was posted to the market sheet.
+    *
+    * Therefore today's new loan identity is maintained separately
+    * from loadedRecords.
+    * =============================================================== */
+
+    const todayNewLoanIndex =
+        typeof window.getTodayDisbursementLoanIndex ===
+        "function"
+
+            ? window.getTodayDisbursementLoanIndex()
+
+            : Object.create(null);
 
 
     appState.dataCore.loadedRecords
@@ -4223,19 +4672,55 @@ function renderDynamicDataCoreLedger() {
 
         const lookup = {};
 
-
-        const source =
+        let source =
             String(
                 blockText || ""
             );
 
 
+        /*
+        * ---------------------------------------------------------------
+        * HARD SECTION BOUNDARY
+        * ---------------------------------------------------------------
+        *
+        * Recovery/default/paydown/etc. must never consume the
+        * Disbursement section.
+        *
+        * The report may contain:
+        *
+        *     *Disbursement ...
+        *
+        * or:
+        *
+        *     Disbursement ...
+        *
+        * Therefore the boundary deliberately does NOT require "*".
+        * ---------------------------------------------------------------
+        */
+
+        const disbursementBoundary =
+            source.search(
+                /(?:^|\r?\n)\s*(?:\*\s*)?Disbursement\b/i
+            );
+
+
+        if (
+            disbursementBoundary >= 0
+        ) {
+
+            source =
+                source.substring(
+                    0,
+                    disbursementBoundary
+                );
+
+        }
+
+
         if (
             !source.trim()
         ) {
-
             return lookup;
-
         }
 
 
@@ -4573,6 +5058,7 @@ function renderDynamicDataCoreLedger() {
 
 
     const payoffRecipientIndexMap = {};
+    const recoveryRecipientIndexMap = {};
 
 
     const payoffReportDate =
@@ -4683,6 +5169,145 @@ function renderDynamicDataCoreLedger() {
                 ) {
 
                     payoffRecipientIndexMap[
+                        customerKey
+                    ] = index;
+                }
+
+            });
+    }
+
+    /* ================================================================
+    * RECOVERY RECIPIENT
+    * ================================================================
+    *
+    * RULE:
+    *
+    * Recovery belongs to the customer's OLD/PREVIOUS loan.
+    *
+    * This is intentionally independent of Pay Off.
+    *
+    * A customer can have:
+    *
+    *     OLD LOAN
+    *         ↓
+    *     Recovery today
+    *
+    *     NEW LOAN TODAY
+    *         ↓
+    *     New loan must NOT receive Recovery
+    *
+    * Therefore we select the most recent loan whose
+    * disbursement date is STRICTLY BEFORE today's report date.
+    * ================================================================ */
+
+    const recoveryReportDate =
+        parsePayoffDate(
+            appState.dataCore.activeDate
+        );
+
+
+    if (
+        recoveryReportDate &&
+        Object.keys(recoveryLookup).length > 0
+    ) {
+
+        appState.dataCore.loadedRecords
+            .forEach((client, index) => {
+
+                const customerKey =
+                    String(
+                        client.accountName || ""
+                    )
+                        .toLowerCase()
+                        .trim();
+
+
+                if (!customerKey) {
+                    return;
+                }
+
+
+                /*
+                * Customer must actually appear in
+                * today's Recovery section.
+                */
+
+                if (
+                    !recoveryLookup[customerKey]
+                ) {
+                    return;
+                }
+
+
+                const disbursementDate =
+                    parsePayoffDate(
+                        client.disbursementDate
+                    );
+
+
+                if (!disbursementDate) {
+                    return;
+                }
+
+
+                /*
+                * NEVER assign Recovery to today's new loan.
+                */
+
+                if (
+                    disbursementDate >=
+                    recoveryReportDate
+                ) {
+                    return;
+                }
+
+
+                const existingIndex =
+                    recoveryRecipientIndexMap[
+                        customerKey
+                    ];
+
+
+                /*
+                * First previous loan found.
+                */
+
+                if (
+                    existingIndex === undefined
+                ) {
+
+                    recoveryRecipientIndexMap[
+                        customerKey
+                    ] = index;
+
+                    return;
+                }
+
+
+                /*
+                * If several previous loans exist,
+                * keep the most recently disbursed one.
+                */
+
+                const existingClient =
+                    appState.dataCore.loadedRecords[
+                        existingIndex
+                    ];
+
+
+                const existingDate =
+                    parsePayoffDate(
+                        existingClient.disbursementDate
+                    );
+
+
+                if (
+                    existingDate &&
+                    disbursementDate >
+                    existingDate
+                ) {
+
+                    recoveryRecipientIndexMap[
                         customerKey
                     ] = index;
                 }
@@ -5021,6 +5646,50 @@ function renderDynamicDataCoreLedger() {
                     .toLowerCase()
                     .trim();
 
+            /* ===============================================================
+            * TODAY'S NEW LOAN IDENTITY
+            * =============================================================== */
+
+            const borrowerKey =
+                String(
+                    client.borrowerUniqueNum ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+
+            const todayNewLoan =
+                borrowerKey &&
+                todayNewLoanIndex[borrowerKey]
+
+                    ? todayNewLoanIndex[borrowerKey]
+
+                    : null;
+
+
+            const isTodayNewLoan =
+                Boolean(
+                    todayNewLoan &&
+                    String(
+                        todayNewLoan.loanUniqueNum ||
+                        ""
+                    ).trim()
+                );
+
+
+            const isTodayNewLoanIdentity =
+                isTodayNewLoan &&
+                String(
+                    client.loanUniqueNum ||
+                    ""
+                ).trim()
+                    ===
+                String(
+                    todayNewLoan.loanUniqueNum ||
+                    ""
+                ).trim();
+
 
             const isLastInstance =
                 lastRowIndexMap[normName] === idx;
@@ -5166,121 +5835,15 @@ function renderDynamicDataCoreLedger() {
                         "badge-active";
                 }
 
-                /* ---------------- RECOVERY ---------------- */
-
-                if (
-                    normName &&
-                    recoveryLookup[normName]
-                ) {
-
-                    const recoveryAmounts =
-                        recoveryLookup[normName] || [];
-
-
-                    const extractedAmt =
-                        recoveryAmounts.length > 0
-                            ? Number(
-                                recoveryAmounts[0]
-                            ) || 0
-                            : 0;
-
-
-                    if (
-                        extractedAmt > 0
-                    ) {
-
-                        /*
-                        * ---------------------------------------------------------
-                        * RECOVERY CANCELS THE DEFAULT
-                        * ---------------------------------------------------------
-                        *
-                        * ₦4,800
-                        * -₦1,000 default
-                        * +₦1,000 recovery
-                        * ----------------
-                        * ₦4,800
-                        * ---------------------------------------------------------
-                        */
-
-                        if (wasOutstandingCustomer) {
-
-                            /*
-                            * ============================================================
-                            * OUTSTANDING + RECOVERY
-                            * ============================================================
-                            *
-                            * Recovery is the ONLY collection for today.
-                            *
-                            * Example:
-                            *
-                            * Normal repayment = ₦6,000
-                            * Recovery         = ₦1,000
-                            *
-                            * Final collection = ₦1,000
-                            *
-                            * NOT ₦7,000.
-                            * ============================================================
-                            */
-
-                            calculatedFinalRepayment =
-                                extractedAmt;
-
-                        } else {
-
-                            /*
-                            * Normal active customer:
-                            *
-                            * Normal repayment + Recovery
-                            */
-
-                            calculatedFinalRepayment +=
-                                extractedAmt;
-                        }
-
-
-                        hasNewActivity =
-                            true;
-
-
-                        /*
-                        * ---------------------------------------------------------
-                        * PRESERVE THE ACTUAL RECOVERY CONDITION
-                        * ---------------------------------------------------------
-                        */
-
-                        transactionConditions.push({
-
-                            type:
-                                "Recovery",
-
-                            amount:
-                                extractedAmt
-
-                        });
-
-
-                        auditTags.push(
-                            "INJECTED RECOVERY — ₦" +
-                            extractedAmt.toLocaleString()
-                        );
-
-
-                        badgeText =
-                            "Injected Recovery";
-
-                        badgeClass =
-                            "badge-recovery";
-
-                    }
-
-                }
-
 
                 /* ---------------- PAY DOWN ---------------- */
 
                 if (
                     normName &&
-                    paydownLookup[normName]
+                    paydownLookup[normName] &&
+                    isLastInstance &&
+                    !isDisbursedToday &&
+                    !isFutureLoan
                 ) {
 
                     const paydownAmounts =
@@ -5339,7 +5902,10 @@ function renderDynamicDataCoreLedger() {
 
                 if (
                     normName &&
-                    usedPaydownLookup[normName]
+                    usedPaydownLookup[normName] &&
+                    isLastInstance &&
+                    !isDisbursedToday &&
+                    !isFutureLoan
                 ) {
 
                     const usedPaydownAmounts =
@@ -5420,6 +5986,7 @@ function renderDynamicDataCoreLedger() {
                 */
 
                 const isFuturePayDownCandidate =
+                    isTodayNewLoanIdentity &&
                     isLastInstance &&
                     isDisbursedToday &&
                     normName &&
@@ -5530,6 +6097,122 @@ function renderDynamicDataCoreLedger() {
 
                         badgeClass =
                             "badge-futurepaydown";
+                    }
+                }
+
+                /* =========================================================
+                * RECOVERY — PREVIOUS LOAN ONLY
+                * =========================================================
+                *
+                * Recovery is deliberately OUTSIDE the isLastInstance block.
+                *
+                * Why?
+                *
+                * A customer may have:
+                *
+                *     OLD LOAN
+                *         ↓
+                *     Recovery ₦7,200
+                *
+                *     NEW LOAN TODAY
+                *         ↓
+                *     This becomes the customer's last instance.
+                *
+                * Therefore the old loan cannot be required to be
+                * isLastInstance.
+                *
+                * recoveryRecipientIndexMap identifies the correct
+                * previous loan.
+                * ========================================================= */
+
+                const isRecoveryRecipient =
+                    recoveryRecipientIndexMap[normName] === idx;
+
+
+                if (
+                    isRecoveryRecipient &&
+                    recoveryLookup[normName] &&
+                    !isDisbursedToday
+                ) {
+
+                    const recoveryAmounts =
+                        recoveryLookup[normName] || [];
+
+
+                    const extractedAmt =
+                        recoveryAmounts.length > 0
+                            ? Number(
+                                recoveryAmounts[0]
+                            ) || 0
+                            : 0;
+
+
+                    if (
+                        extractedAmt > 0
+                    ) {
+
+                        /*
+                        * -------------------------------------------------------
+                        * OUTSTANDING OLD LOAN
+                        *
+                        * Recovery becomes today's actual collection
+                        * for that old loan.
+                        *
+                        * Example:
+                        *
+                        * Old outstanding loan
+                        * Recovery = ₦7,200
+                        *
+                        * DataCore collection = ₦7,200
+                        * -------------------------------------------------------
+                        */
+
+                        if (
+                            wasOutstandingCustomer
+                        ) {
+
+                            calculatedFinalRepayment =
+                                extractedAmt;
+
+                        } else {
+
+                            /*
+                            * For an active previous loan,
+                            * preserve its normal repayment and add
+                            * the Recovery amount.
+                            */
+
+                            calculatedFinalRepayment +=
+                                extractedAmt;
+                        }
+
+
+                        hasNewActivity =
+                            true;
+
+
+                        transactionConditions.push({
+
+                            type:
+                                "Recovery",
+
+                            amount:
+                                extractedAmt
+
+                        });
+
+
+                        auditTags.push(
+                            "RECOVERY — ₦" +
+                            extractedAmt.toLocaleString()
+                        );
+
+
+                        badgeText =
+                            "Recovery";
+
+                        badgeClass =
+                            "badge-recovery";
                     }
                 }
 
@@ -5699,7 +6382,23 @@ function renderDynamicDataCoreLedger() {
                     ).trim(),
 
                 reportDate:
-                    appState.dataCore.activeDate
+                    appState.dataCore.activeDate,
+
+                todayNewLoan:
+                    isTodayNewLoanIdentity
+                        ? {
+                            borrowerUniqueNum:
+                                todayNewLoan.borrowerUniqueNum,
+                            loanUniqueNum:
+                                todayNewLoan.loanUniqueNum,
+                            customerName:
+                                todayNewLoan.customerName,
+                            principal:
+                                todayNewLoan.principal,
+                            disbursementDate:
+                                todayNewLoan.disbursementDate
+                        }
+                        : null
 
             };
 
@@ -7188,6 +7887,27 @@ async function postDataCoreTransactionsToSheets() {
 
     const rowsPayload = [];
 
+    /* ===============================================================
+    * TODAY'S NEW LOAN POSTING GUARD
+    *
+    * A Future Pay Down may belong to a loan generated by the
+    * Disbursement Core preview.
+    *
+    * That loan must exist in the DataCore market sheet before the
+    * collection transaction can be posted against its identity.
+    * =============================================================== */
+
+    const todayNewLoanIndex =
+        typeof window.getTodayDisbursementLoanIndex ===
+        "function"
+
+            ? window.getTodayDisbursementLoanIndex()
+
+            : Object.create(null);
+
+
+    const pendingNewLoanTransactions = [];
+
 
     appState.dataCore.loadedRecords.forEach(
         function(
@@ -7480,6 +8200,95 @@ async function postDataCoreTransactionsToSheets() {
 
             }
 
+            const borrowerKey =
+                String(
+                    client.borrowerUniqueNum ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+
+            const todayNewLoan =
+                borrowerKey &&
+                todayNewLoanIndex[borrowerKey]
+                    ? todayNewLoanIndex[borrowerKey]
+                    : null;
+
+
+            const storedLoan =
+                String(
+                    client.loanUniqueNum ||
+                    ""
+                ).trim();
+
+
+            const expectedTodayLoan =
+                todayNewLoan
+                    ? String(
+                        todayNewLoan.loanUniqueNum ||
+                        ""
+                    ).trim()
+                    : "";
+
+
+            if (
+                todayNewLoan &&
+                expectedTodayLoan &&
+                storedLoan !== expectedTodayLoan
+            ) {
+
+                const storedTransaction =
+                    client._dataCoreTransaction || {};
+
+
+                const hasFuturePayDown =
+                    Array.isArray(
+                        storedTransaction.conditions
+                    ) &&
+                    storedTransaction.conditions.some(
+                        function(condition) {
+
+                            return (
+                                condition &&
+                                String(
+                                    condition.type ||
+                                    ""
+                                )
+                                    .trim()
+                                    .toLowerCase()
+                                ===
+                                "future pay down"
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    hasFuturePayDown
+                ) {
+
+                    pendingNewLoanTransactions.push({
+
+                        customerName:
+                            client.accountName,
+
+                        borrowerUniqueNum:
+                            client.borrowerUniqueNum,
+
+                        loadedLoanUniqueNum:
+                            storedLoan,
+
+                        todayNewLoanUniqueNum:
+                            expectedTodayLoan
+
+                    });
+
+                }
+
+            }
+
 
             /*
              * -------------------------------------------------------
@@ -7606,6 +8415,36 @@ async function postDataCoreTransactionsToSheets() {
 
         }
     );
+
+    if (
+        pendingNewLoanTransactions.length > 0
+    ) {
+
+        const firstPending =
+            pendingNewLoanTransactions[0];
+
+
+        alert(
+            "⚠️ Today's new loan has been identified for Future Pay Down, " +
+            "but the new Loan Unique Number is not yet present in the " +
+            "DataCore market registry.\n\n" +
+
+            "Customer: " +
+            firstPending.customerName +
+            "\n" +
+
+            "New Loan: " +
+            firstPending.todayNewLoanUniqueNum +
+            "\n\n" +
+
+            "Post the Disbursement Core first, then refresh DataCore " +
+            "before posting the collection transaction."
+        );
+
+
+        return;
+
+    }
 
 
     /*
@@ -8480,6 +9319,23 @@ function clearWorkspace() {
         );
     }
 
+    const dataCoreSearchInput =
+        document.getElementById(
+            "datacore-search-input"
+        );
+
+
+    if (dataCoreSearchInput) {
+
+        dataCoreSearchInput.value =
+            "";
+
+        dataCoreSearchInput.dispatchEvent(
+            new Event("input")
+        );
+
+    }
+
 
     window.scrollTo({
         top: 0,
@@ -8893,6 +9749,19 @@ document.addEventListener(
             refreshDataCore
         );
 
+        document.addEventListener(
+            "lendingops:disbursement-preview-ready",
+            function () {
+                const dataCoreStatusSubtext =
+                    document.getElementById("datacore-status-subtext");
+
+                if (dataCoreStatusSubtext) {
+                    dataCoreStatusSubtext.textContent =
+                        "DataCore loaded and today's loan identities reconciled.";
+                }
+            }
+        );
+
 
         /*
          * =========================================================
@@ -8966,6 +9835,31 @@ document.addEventListener(
         refreshBusinessParserButton?.addEventListener(
             "click",
             refreshBusinessParser
+        );
+
+        document.addEventListener(
+            "lendingops:disbursement-preview-ready",
+            function() {
+
+                /*
+                * Only re-render when DataCore customer records are
+                * already available.
+                *
+                * This prevents a second API request.
+                */
+
+                if (
+                    Array.isArray(
+                        appState.dataCore.loadedRecords
+                    ) &&
+                    appState.dataCore.loadedRecords.length > 0
+                ) {
+
+                    renderDynamicDataCoreLedger();
+
+                }
+
+            }
         );
 
     }

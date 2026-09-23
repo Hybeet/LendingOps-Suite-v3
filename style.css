@@ -427,6 +427,7 @@ footer button a {
 .datacore-summary-badge strong {
     color: var(--success);
 }
+
 .table-scroll-container {
     height: 400px;
     width: 100%;
@@ -1385,25 +1386,46 @@ footer button a {
    HEADER
    ========================================================= */
 
+/* =========================================================
+   HEADER
+   ========================================================= */
+
 .disbursement-core-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    grid-template-areas:
+        "title status"
+        "reconciliation reconciliation";
+
     align-items: center;
-    gap: 20px;
+
+    column-gap: 20px;
+    row-gap: 10px;
+
     padding: 24px;
+
     background:
         linear-gradient(
             135deg,
             #f8fbff,
             #eef5ff
         );
+
     border-bottom: 1px solid rgba(37, 99, 235, 0.10);
 }
 
 .disbursement-core-title {
+    grid-area: title;
+
     display: flex;
     align-items: center;
     gap: 15px;
+
+    min-width: 0;
 }
 
 .disbursement-core-icon {
@@ -1440,17 +1462,62 @@ footer button a {
     font-size: 13px;
 }
 
+/* =========================================================
+   DISBURSEMENT STATUS / REFRESH
+   Clean header actions — no enclosing capsule
+   ========================================================= */
+
 .disbursement-core-status {
+    grid-area: status;
+
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    min-width: 0;
+
+    padding: 0 !important;
+
+    margin: 0 !important;
+
+    border: 0 !important;
+    border-radius: 0 !important;
+
+    background: transparent !important;
+    box-shadow: none !important;
+
     color: #64748b;
+
     font-size: 12px;
     font-weight: 700;
+
+    white-space: nowrap;
+}
+
+#disbursement-status-text {
+    display: inline-flex;
+
+    align-items: center;
+
+    min-height: 0;
+
+    padding: 0 !important;
+
+    margin: 0 !important;
+
+    border: 0 !important;
+    border-radius: 0 !important;
+
+    background: transparent !important;
+
+    color: #64748b;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    white-space: nowrap;
 }
 
 .disbursement-status-dot {
@@ -1459,6 +1526,59 @@ footer button a {
     border-radius: 50%;
     background: #94a3b8;
 }
+
+#refresh-disbursement-core-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    height: 34px;
+
+    padding: 0 12px;
+
+    margin: 0;
+
+    border: 1px solid rgba(37, 99, 235, 0.24);
+
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.78);
+
+    color: #2563eb;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    box-shadow: none;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+#refresh-disbursement-core-btn:hover {
+    background: #ffffff;
+
+    border-color: rgba(37, 99, 235, 0.42);
+
+    transform: translateY(-1px);
+}
+
+#refresh-disbursement-core-btn:active {
+    transform: translateY(0);
+}
+
+
 
 
 /* =========================================================
@@ -3425,4 +3545,427 @@ body.dark-mode #errorBox li {
 
 #parser-section > header p {
     color: var(--parser-subheading-text) !important;
+}
+
+/* =========================================================
+   DATACORE SEARCH
+   Permanent application search — Ctrl+F visual design
+   ========================================================= */
+
+.datacore-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   DATACORE SEARCH — THEME AWARE
+   ========================================================= */
+
+.datacore-search-bar {
+    display: flex;
+    align-items: center;
+
+    flex: 1 1 300px;
+
+    width: 300px;
+    min-width: 230px;
+    max-width: 360px;
+
+    height: 36px;
+
+    padding: 0 4px 0 9px;
+
+    box-sizing: border-box;
+
+    border: 1px solid var(--datacore-search-border, rgba(148, 163, 184, 0.38));
+
+    border-radius: 7px;
+
+    background: var(--datacore-search-bg, rgba(15, 23, 42, 0.72));
+
+    color: var(--datacore-search-text, inherit);
+
+    box-shadow:
+        inset 0 1px 0 var(--datacore-search-highlight, rgba(255, 255, 255, 0.04));
+
+    overflow: hidden;
+}
+
+/* =========================================================
+   DATACORE SEARCH — LIGHT THEME
+   ========================================================= */
+
+:root[data-theme="light"] {
+    --datacore-search-bg: #ffffff;
+    --datacore-search-border: rgba(15, 23, 42, 0.16);
+    --datacore-search-text: #0f172a;
+    --datacore-search-highlight: rgba(255, 255, 255, 0.8);
+}
+
+/* =========================================================
+   DATACORE SEARCH — DARK THEME
+   ========================================================= */
+
+:root[data-theme="dark"] {
+    --datacore-search-bg: rgba(15, 23, 42, 0.72);
+    --datacore-search-border: rgba(148, 163, 184, 0.38);
+    --datacore-search-text: #f8fafc;
+    --datacore-search-highlight: rgba(255, 255, 255, 0.04);
+}
+
+/* ---------------------------------------------------------
+   Search icon
+   --------------------------------------------------------- */
+
+.datacore-search-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 18px;
+
+    width: 18px;
+    height: 18px;
+
+    margin-right: 5px;
+
+    font-size: 12px;
+
+    opacity: 0.6;
+}
+
+/* ---------------------------------------------------------
+   Input
+   --------------------------------------------------------- */
+
+.datacore-search-input {
+    display: block;
+
+    flex: 1 1 auto;
+
+    width: 1px;
+    min-width: 0;
+
+    height: 30px;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    outline: none;
+
+    background: transparent;
+
+    color: inherit;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.datacore-search-input::placeholder {
+    color: currentColor;
+    opacity: 0.48;
+}
+
+/* ---------------------------------------------------------
+   Match counter
+   --------------------------------------------------------- */
+
+.datacore-search-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 34px;
+
+    width: 34px;
+    min-width: 34px;
+
+    height: 28px;
+
+    margin: 0 1px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    opacity: 0.62;
+}
+
+/* ---------------------------------------------------------
+   ↑ ↓ ×
+   --------------------------------------------------------- */
+
+.datacore-search-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 28px;
+
+    width: 28px;
+    height: 28px;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    border-radius: 5px;
+
+    background: transparent;
+    color: inherit;
+
+    font-size: 15px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.datacore-search-control:hover {
+    background: rgba(148, 163, 184, 0.15);
+}
+
+.datacore-search-control:active {
+    opacity: 0.65;
+}
+
+.datacore-search-close {
+    font-size: 19px;
+    opacity: 0.72;
+}
+
+/* ---------------------------------------------------------
+   Search results
+   --------------------------------------------------------- */
+
+.datacore-search-match {
+    outline: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.datacore-search-current {
+    outline: 2px solid rgba(59, 130, 246, 0.9) !important;
+    scroll-margin-top: 80px;
+}
+
+
+/* =========================================================
+   DATACORE HEADER — KEEP SEARCH CONTROLS ON ONE LINE
+   ========================================================= */
+
+.datacore-header {
+    position: relative;
+}
+
+.datacore-header-actions {
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+}
+
+.datacore-search-bar {
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+}
+
+.datacore-search-input,
+.datacore-search-count,
+.datacore-search-control {
+    flex-shrink: 0;
+}
+
+.datacore-search-input {
+    flex-shrink: 1;
+}
+
+@media (max-width: 900px) {
+
+    .datacore-header-actions {
+        width: 100%;
+        flex-wrap: nowrap !important;
+        justify-content: flex-end;
+    }
+
+    .datacore-search-bar {
+        flex: 1 1 auto;
+
+        width: auto;
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .datacore-header-actions {
+        gap: 6px;
+    }
+
+    .datacore-search-bar {
+        height: 38px;
+
+        padding-left: 8px;
+    }
+
+    .datacore-search-input {
+        font-size: 13px;
+    }
+
+    .datacore-search-count {
+        flex-basis: 32px;
+        width: 32px;
+        min-width: 32px;
+    }
+
+    .datacore-search-control {
+        flex-basis: 27px;
+        width: 27px;
+        height: 27px;
+    }
+}
+
+@media (min-width: 901px) {
+
+    .datacore-header {
+        display: grid;
+
+        grid-template-columns:
+            minmax(260px, 1fr)
+            minmax(520px, auto);
+
+        align-items: center;
+
+        column-gap: 18px;
+    }
+
+    .datacore-header-actions {
+        min-width: 520px;
+    }
+}
+
+/* =========================================================
+   DISBURSEMENT CORE — HORIZONTAL RECONCILIATION
+   ========================================================= */
+
+.disbursement-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.disbursement-reconciliation-inline {
+    grid-area: reconciliation;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-start;
+
+    gap: 9px;
+
+    width: 100%;
+    min-width: 0;
+
+    padding-top: 2px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.disbursement-reconciliation-item {
+    display: inline-flex;
+    align-items: baseline;
+
+    gap: 4px;
+    flex: 0 0 auto;
+
+    white-space: nowrap;
+}
+
+.reconciliation-label {
+    font-weight: 600;
+    opacity: 0.62;
+}
+
+.reconciliation-value {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.disbursement-reconciliation-separator {
+    opacity: 0.28;
+    user-select: none;
+
+    flex: 0 0 auto;
+}
+
+.disbursement-reconciliation-status {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.disbursement-reconciliation-status.is-waiting {
+    opacity: 0.65;
+}
+
+.disbursement-reconciliation-status.is-matched {
+    color: #22c55e;
+}
+
+.disbursement-reconciliation-status.is-unmatched {
+    color: #ef4444;
+}
+
+
+/* =========================================================
+   DISBURSEMENT CORE — RESPONSIVE HEADER
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .disbursement-core-header {
+        grid-template-columns: 1fr;
+
+        grid-template-areas:
+            "title"
+            "status"
+            "reconciliation";
+
+        row-gap: 12px;
+    }
+
+    .disbursement-core-status {
+        justify-content: flex-start;
+    }
+
+    .disbursement-reconciliation-inline {
+        justify-content: flex-start;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        padding-bottom: 2px;
+
+        scrollbar-width: thin;
+    }
 }

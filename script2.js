@@ -313,6 +313,51 @@
         );
 
         closeDisbursementPanel();
+
+        const reportCostElement =
+            document.getElementById(
+                "disbursement-report-cost"
+            );
+
+        const principalElement =
+            document.getElementById(
+                "disbursement-total-principal"
+            );
+
+        const varianceElement =
+            document.getElementById(
+                "disbursement-variance"
+            );
+
+        const statusElement =
+            document.getElementById(
+                "disbursement-reconciliation-status"
+            );
+
+        if (reportCostElement) {
+            reportCostElement.textContent = "₦0.00";
+        }
+
+        if (principalElement) {
+            principalElement.textContent = "₦0.00";
+        }
+
+        if (varianceElement) {
+            varianceElement.textContent = "₦0.00";
+        }
+
+        if (statusElement) {
+            statusElement.textContent = "WAITING";
+
+            statusElement.classList.remove(
+                "is-matched",
+                "is-unmatched"
+            );
+
+            statusElement.classList.add(
+                "is-waiting"
+            );
+        }
     }
 
 
@@ -431,7 +476,19 @@
             if (footer) footer.textContent = "0 records";
 
             if (postButton) {
-                postButton.disabled = true;
+
+                postButton.disabled =
+                    true;
+
+                postButton.textContent =
+                    "Post Disbursements";
+
+                postButton.classList.remove(
+                    "ready-to-post"
+                );
+
+                postButton.title =
+                    "Waiting for a new disbursement preview.";
             }
 
             return;
@@ -589,6 +646,119 @@
                 disbursementState.postConfirmed;
         }
     }
+
+    function updateDisbursementReconciliationUI() {
+        const reportCostElement =
+            document.getElementById(
+                "disbursement-report-cost"
+            );
+
+        const principalElement =
+            document.getElementById(
+                "disbursement-total-principal"
+            );
+
+        const varianceElement =
+            document.getElementById(
+                "disbursement-variance"
+            );
+
+        const statusElement =
+            document.getElementById(
+                "disbursement-reconciliation-status"
+            );
+
+        if (
+            !reportCostElement ||
+            !principalElement ||
+            !varianceElement ||
+            !statusElement
+        ) {
+            return;
+        }
+
+        const reportCost =
+            Number(
+                document.getElementById("costOfDeals")?.value
+            ) || 0;
+
+        const totalPrincipal =
+            disbursementState.records.reduce(
+                (total, record) => {
+                    return (
+                        total +
+                        (
+                            Number(record.principal) ||
+                            0
+                        )
+                    );
+                },
+                0
+            );
+
+        const variance =
+            totalPrincipal - reportCost;
+
+        reportCostElement.textContent =
+            "₦" +
+            reportCost.toLocaleString(
+                "en-NG",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+        principalElement.textContent =
+            "₦" +
+            totalPrincipal.toLocaleString(
+                "en-NG",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+        varianceElement.textContent =
+            "₦" +
+            variance.toLocaleString(
+                "en-NG",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+        statusElement.classList.remove(
+            "is-waiting",
+            "is-matched",
+            "is-unmatched"
+        );
+
+        if (
+            disbursementState.records.length === 0 &&
+            reportCost === 0
+        ) {
+            statusElement.textContent = "WAITING";
+            statusElement.classList.add(
+                "is-waiting"
+            );
+            return;
+        }
+
+        if (Math.abs(variance) < 0.01) {
+            statusElement.textContent = "MATCHED";
+            statusElement.classList.add(
+                "is-matched"
+            );
+        } else {
+            statusElement.textContent = "UNMATCHED";
+            statusElement.classList.add(
+                "is-unmatched"
+            );
+        }
+    }
+
 
     function updateDisbursementPreviewUI() {
 
@@ -1024,6 +1194,7 @@
                 }
             );
 
+        
 
         /*
         * =============================================================
@@ -1037,6 +1208,8 @@
                 disbursementState.postConfirmed;
 
         }
+        
+        updateDisbursementReconciliationUI();
 
     }
 
@@ -1532,6 +1705,18 @@
             )
                 ? disbursementState.records
                 : [];
+        
+        document.dispatchEvent(
+            new CustomEvent(
+                "lendingops:disbursement-preview-ready",
+                {
+                    detail: {
+                        records:
+                            disbursementState.records.length
+                    }
+                }
+            )
+        );
 
 
         if (!market) {
@@ -1773,6 +1958,7 @@
         * UPDATE PREVIEW
         * =============================================================
         */
+        updateDisbursementReconciliationUI();
 
         updateDisbursementPreviewUI();
 
@@ -1797,6 +1983,8 @@
 
 
         return disbursementState.records;
+
+        
     }
 
     /* =====================================================
@@ -2158,6 +2346,9 @@
             }
 
         }
+
+    updateDisbursementReconciliationUI();
+
     }
 
 
@@ -2419,6 +2610,12 @@
 
             await enrichDisbursementPreviewRecords();
 
+            updateDisbursementPreviewUI();
+
+            document.dispatchEvent(
+                new CustomEvent("lendingops:disbursement-preview-ready")
+            );
+
         } catch (error) {
 
             console.error(
@@ -2444,6 +2641,7 @@
             disbursementState.previewLoading =
                 false;
         }
+        
     }
 
 
@@ -3249,5 +3447,113 @@
         initializeDisbursementCore
     );
 
+
+    /* ===============================================================
+    * DATACORE READ-ONLY DISBURSEMENT IDENTITY BRIDGE
+    *
+    * PURPOSE:
+    * Allows script.js to know which borrower/loan identities belong
+    * to today's Disbursement Core preview.
+    *
+    * IMPORTANT:
+    * - Read-only
+    * - No API call
+    * - No mutation
+    * - Does NOT expose raw report text
+    * - Does NOT expose posting controls
+    * =============================================================== */
+
+    window.getTodayDisbursementLoanIndex = function () {
+
+        const records =
+            Array.isArray(
+                disbursementState.records
+            )
+                ? disbursementState.records
+                : [];
+
+
+        const index =
+            Object.create(null);
+
+
+        records.forEach(
+            function(record) {
+
+                if (
+                    !record ||
+                    typeof record !== "object"
+                ) {
+                    return;
+                }
+
+
+                const borrower =
+                    String(
+                        record.borrowerUniqueNumber ||
+                        record.borrowerUniqueNum ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+
+                const loan =
+                    String(
+                        record.loanUniqueNumber ||
+                        record.loanUniqueNum ||
+                        ""
+                    )
+                        .trim();
+
+
+                const customerName =
+                    String(
+                        record.customerName ||
+                        record.originalCustomerName ||
+                        ""
+                    )
+                        .trim();
+
+
+                if (
+                    !borrower ||
+                    !loan
+                ) {
+                    return;
+                }
+
+
+                index[borrower] = {
+
+                    borrowerUniqueNum:
+                        borrower,
+
+                    loanUniqueNum:
+                        loan,
+
+                    customerName:
+                        customerName,
+
+                    principal:
+                        Number(
+                            record.principal
+                        ) || 0,
+
+                    disbursementDate:
+                        String(
+                            record.disbursementDate ||
+                            disbursementState.reportDate ||
+                            ""
+                        ).trim()
+
+                };
+
+            }
+        );
+
+
+        return index;
+    };
 
 })();
