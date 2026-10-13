@@ -989,8 +989,8 @@ async function extractDataInternal(options = {}) {
     */
 
     const marketRegex =
-        /(?:^|\r?\n)\s*\*?\s*(?:Market\s*\/\s*Location|Market\s+Name|Market|Location)\s*\*?\s*[:=]\s*\*?\s*([A-Za-z0-9][A-Za-z0-9\s._-]*?)\s*\*?\s*(?=\r?\n|$)/im;
-
+    /(?:^|\r?\n)[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*\*?[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*(?:Market[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*\/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*Location|Market[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]+Name|Market|Location)[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*\*?[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*[:=][\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*\*?[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*([A-Za-z0-9][A-Za-z0-9\s._-]*?)\s*\*?[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*(?=\r?\n|$)/im;
+    
     const marketMatch =
         text.match(
             marketRegex
@@ -4541,7 +4541,8 @@ function renderDynamicDataCoreLedger() {
 
     const recoveryBlock =
         text.match(
-            /\*\s*Recovery\s+with\s+phone\s*=\s*([\s\S]*?)(?=\r?\n\s*(?:\*\s*)?Disbursement\b|\r?\n\s*\*\s*(?:Previous\s+Pay\s+Down|Pay\s+down\s+with\s+phone|Used\s+pay\s+down\s+with\s+phone|Pay\s*off|Default\s+with\s+phone|Record\s+of\s+Form)|$)/i
+            /\*[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*Recovery[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]+with[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]+phone[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*=[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*([\s\S]*?)(?=\r?\n[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*(?:\*[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*)?Disbursement\b|\r?\n[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*\*[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u00A0\s]*(?:Previous\s+Pay\s+Down|Pay\s+down\s+with\s+phone|Used\s+pay\s+down\s+with\s+phone|Pay\s*off|Default\s+with\s+phone|Record\s+of\s+Form)|$)/i
+
         );
 
 
@@ -8560,28 +8561,51 @@ async function postDataCoreTransactionsToSheets() {
 
     try {
 
-        const result =
+        let result =
             await apiRequest(
                 API_CONFIG.BUSINESS_PARSER,
                 {
-
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "text/plain;charset=utf-8"
-
                     },
 
-                    body:
-                        JSON.stringify(
-                            payload
-                        )
-
+                    body: JSON.stringify(payload)
                 }
             );
+
+        /*
+        * -----------------------------------------------------------
+        * DUPLICATE POSTING GUARD
+        * -----------------------------------------------------------
+        * If DataCore reports existing payments for this date:
+        * 1. Show the warning.
+        * 2. Do not retry the POST.
+        * 3. Do not mark the submission as successful.
+        * 4. Let the existing finally block clean up the UI.
+        * -----------------------------------------------------------
+        */
+
+        if (
+            result &&
+            result.status === "duplicate_confirmation_required"
+        ) {
+            appState.dataCore.postConfirmed = false;
+
+            alert(
+                "⚠️ DUPLICATE POSTING WARNING\n\n" +
+                (
+                    result.message ||
+                    "Payments already exist for this market and report date."
+                ) +
+                "\n\nPosting has been stopped to prevent duplicate payments. " +
+                "Verify the market and report date before trying again."
+            );
+
+            return result;
+        }
 
 
         /*
